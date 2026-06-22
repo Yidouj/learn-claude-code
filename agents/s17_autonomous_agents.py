@@ -2,9 +2,17 @@
 # Harness: autonomy -- models that find work without being told.
 """
 s17_autonomous_agents.py - Autonomous Agents
+<<<<<<< HEAD
 Idle cycle with task board polling, auto-claiming unclaimed tasks, and
 identity re-injection after context compression. Builds on task boards,
 team mailboxes, and protocol support from earlier chapters.
+=======
+
+Idle cycle with task board polling, auto-claiming unclaimed tasks, and
+identity re-injection after context compression. Builds on task boards,
+team mailboxes, and protocol support from earlier chapters.
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     Teammate lifecycle:
     +-------+
     | spawn |
@@ -26,14 +34,26 @@ team mailboxes, and protocol support from earlier chapters.
         +---> scan .tasks/ -> unclaimed? -> claim -> resume WORK
         |
         +---> timeout (60s) -> shutdown
+<<<<<<< HEAD
     Identity re-injection after compression:
     messages = [identity_block, ...remaining...]
     "You are 'coder', role: backend, team: my-team"
+=======
+
+    Identity re-injection after compression:
+    messages = [identity_block, ...remaining...]
+    "You are 'coder', role: backend, team: my-team"
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 Key idea: an idle teammate can safely claim ready work instead of waiting
 for every assignment from the lead.
 A teammate here is a long-lived worker, not a one-shot subagent that only
 returns a single summary.
 """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 import json
 import os
 import subprocess
@@ -41,14 +61,23 @@ import threading
 import time
 import uuid
 from pathlib import Path
+<<<<<<< HEAD
 from anthropic import Anthropic
 from dotenv import load_dotenv
 load_dotenv(override=True)
 
+=======
+
+from anthropic import Anthropic
+from dotenv import load_dotenv
+
+load_dotenv(override=True)
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 if os.getenv("ANTHROPIC_BASE_URL"):
     os.environ.pop("ANTHROPIC_AUTH_TOKEN", None)
 
 WORKDIR = Path.cwd()
+<<<<<<< HEAD
 
 client = Anthropic(base_url=os.getenv("ANTHROPIC_BASE_URL"))
 
@@ -66,6 +95,17 @@ CLAIM_EVENTS_PATH = TASKS_DIR / "claim_events.jsonl"
 
 POLL_INTERVAL = 5
 
+=======
+client = Anthropic(base_url=os.getenv("ANTHROPIC_BASE_URL"))
+MODEL = os.environ["MODEL_ID"]
+TEAM_DIR = WORKDIR / ".team"
+INBOX_DIR = TEAM_DIR / "inbox"
+TASKS_DIR = WORKDIR / ".tasks"
+REQUESTS_DIR = TEAM_DIR / "requests"
+CLAIM_EVENTS_PATH = TASKS_DIR / "claim_events.jsonl"
+
+POLL_INTERVAL = 5
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 IDLE_TIMEOUT = 60
 
 SYSTEM = f"You are a team lead at {WORKDIR}. Teammates are autonomous -- they find work themselves."
@@ -81,6 +121,10 @@ VALID_MSG_TYPES = {
 
 _claim_lock = threading.Lock()
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 # -- MessageBus: JSONL inbox per teammate --
 class MessageBus:
     def __init__(self, inbox_dir: Path):
@@ -102,9 +146,14 @@ class MessageBus:
         inbox_path = self.dir / f"{to}.jsonl"
         with open(inbox_path, "a") as f:
             f.write(json.dumps(msg) + "\n")
+<<<<<<< HEAD
 
         return f"Sent {msg_type} to {to}"
     
+=======
+        return f"Sent {msg_type} to {to}"
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def read_inbox(self, name: str) -> list:
         inbox_path = self.dir / f"{name}.jsonl"
         if not inbox_path.exists():
@@ -115,7 +164,11 @@ class MessageBus:
                 messages.append(json.loads(line))
         inbox_path.write_text("")
         return messages
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def broadcast(self, sender: str, content: str, teammates: list) -> str:
         count = 0
         for name in teammates:
@@ -124,6 +177,7 @@ class MessageBus:
                 count += 1
         return f"Broadcast to {count} teammates"
 
+<<<<<<< HEAD
 BUS = MessageBus(INBOX_DIR)
 
 class RequestStore:
@@ -132,6 +186,20 @@ class RequestStore:
     s17 should not regress from s16 back to in-memory trackers. These request
     files let autonomous teammates inspect or resume protocol state later.
     """
+=======
+
+BUS = MessageBus(INBOX_DIR)
+
+
+class RequestStore:
+    """
+    Durable protocol request records.
+
+    s17 should not regress from s16 back to in-memory trackers. These request
+    files let autonomous teammates inspect or resume protocol state later.
+    """
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def __init__(self, base_dir: Path):
         self.dir = base_dir
         self.dir.mkdir(parents=True, exist_ok=True)
@@ -139,19 +207,31 @@ class RequestStore:
 
     def _path(self, request_id: str) -> Path:
         return self.dir / f"{request_id}.json"
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def create(self, record: dict) -> dict:
         request_id = record["request_id"]
         with self._lock:
             self._path(request_id).write_text(json.dumps(record, indent=2))
         return record
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def get(self, request_id: str) -> dict | None:
         path = self._path(request_id)
         if not path.exists():
             return None
         return json.loads(path.read_text())
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def update(self, request_id: str, **changes) -> dict | None:
         with self._lock:
             record = self.get(request_id)
@@ -161,21 +241,37 @@ class RequestStore:
             record["updated_at"] = time.time()
             self._path(request_id).write_text(json.dumps(record, indent=2))
         return record
+<<<<<<< HEAD
     
 REQUEST_STORE = RequestStore(REQUESTS_DIR)
 
+=======
+
+
+REQUEST_STORE = RequestStore(REQUESTS_DIR)
+
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 # -- Task board scanning --
 def _append_claim_event(payload: dict):
     TASKS_DIR.mkdir(parents=True, exist_ok=True)
     with CLAIM_EVENTS_PATH.open("a", encoding="utf-8") as f:
         f.write(json.dumps(payload) + "\n")
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def _task_allows_role(task: dict, role: str | None) -> bool:
     required_role = task.get("claim_role") or task.get("required_role") or ""
     if not required_role:
         return True
     return bool(role) and role == required_role
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def is_claimable_task(task: dict, role: str | None = None) -> bool:
     return (
         task.get("status") == "pending"
@@ -184,6 +280,10 @@ def is_claimable_task(task: dict, role: str | None = None) -> bool:
         and _task_allows_role(task, role)
     )
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def scan_unclaimed_tasks(role: str | None = None) -> list:
     TASKS_DIR.mkdir(exist_ok=True)
     unclaimed = []
@@ -193,6 +293,10 @@ def scan_unclaimed_tasks(role: str | None = None) -> list:
             unclaimed.append(task)
     return unclaimed
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def claim_task(
     task_id: int,
     owner: str,
@@ -221,18 +325,31 @@ def claim_task(
     })
     return f"Claimed task #{task_id} for {owner} via {source}"
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 # -- Identity re-injection after compression --
 def make_identity_block(name: str, role: str, team_name: str) -> dict:
     return {
         "role": "user",
         "content": f"<identity>You are '{name}', role: {role}, team: {team_name}. Continue your work.</identity>",
     }
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def ensure_identity_context(messages: list, name: str, role: str, team_name: str):
     if messages and "<identity>" in str(messages[0].get("content", "")):
         return
     messages.insert(0, make_identity_block(name, role, team_name))
     messages.insert(1, {"role": "assistant", "content": f"I am {name}. Continuing."})
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 # -- Autonomous TeammateManager --
 class TeammateManager:
     def __init__(self, team_dir: Path):
@@ -241,22 +358,41 @@ class TeammateManager:
         self.config_path = self.dir / "config.json"
         self.config = self._load_config()
         self.threads = {}
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def _load_config(self) -> dict:
         if self.config_path.exists():
             return json.loads(self.config_path.read_text())
         return {"team_name": "default", "members": []}
+<<<<<<< HEAD
     def _save_config(self):
         self.config_path.write_text(json.dumps(self.config, indent=2))
+=======
+
+    def _save_config(self):
+        self.config_path.write_text(json.dumps(self.config, indent=2))
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def _find_member(self, name: str) -> dict:
         for m in self.config["members"]:
             if m["name"] == name:
                 return m
         return None
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def _set_status(self, name: str, status: str):
         member = self._find_member(name)
         if member:
             member["status"] = status
             self._save_config()
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def spawn(self, name: str, role: str, prompt: str) -> str:
         member = self._find_member(name)
         if member:
@@ -276,6 +412,10 @@ class TeammateManager:
         self.threads[name] = thread
         thread.start()
         return f"Spawned '{name}' (role: {role})"
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def _loop(self, name: str, role: str, prompt: str):
         team_name = self.config["team_name"]
         sys_prompt = (
@@ -284,6 +424,10 @@ class TeammateManager:
         )
         messages = [{"role": "user", "content": prompt}]
         tools = self._teammate_tools()
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
         while True:
             # -- WORK PHASE: standard agent loop --
             for _ in range(50):
@@ -325,6 +469,10 @@ class TeammateManager:
                 messages.append({"role": "user", "content": results})
                 if idle_requested:
                     break
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
             # -- IDLE PHASE: poll for inbox messages and unclaimed tasks --
             self._set_status(name, "idle")
             resume = False
@@ -358,6 +506,10 @@ class TeammateManager:
                     messages.append({"role": "assistant", "content": f"{claim_result}. Working on it."})
                     resume = True
                     break
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
             if not resume:
                 self._set_status(name, "shutdown")
                 return
@@ -419,7 +571,11 @@ class TeammateManager:
                 source="manual",
             )
         return f"Unknown tool: {tool_name}"
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def _teammate_tools(self) -> list:
         # these base tools are unchanged from s02
         return [
@@ -444,7 +600,11 @@ class TeammateManager:
             {"name": "claim_task", "description": "Claim a task from the task board by ID.",
              "input_schema": {"type": "object", "properties": {"task_id": {"type": "integer"}}, "required": ["task_id"]}},
         ]
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def list_all(self) -> str:
         if not self.config["members"]:
             return "No teammates."
@@ -452,18 +612,34 @@ class TeammateManager:
         for m in self.config["members"]:
             lines.append(f"  {m['name']} ({m['role']}): {m['status']}")
         return "\n".join(lines)
+<<<<<<< HEAD
     
     def member_names(self) -> list:
         return [m["name"] for m in self.config["members"]]
 
 TEAM = TeammateManager(TEAM_DIR)
 
+=======
+
+    def member_names(self) -> list:
+        return [m["name"] for m in self.config["members"]]
+
+
+TEAM = TeammateManager(TEAM_DIR)
+
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 # -- Base tool implementations (these base tools are unchanged from s02) --
 def _safe_path(p: str) -> Path:
     path = (WORKDIR / p).resolve()
     if not path.is_relative_to(WORKDIR):
         raise ValueError(f"Path escapes workspace: {p}")
     return path
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def _run_bash(command: str) -> str:
     dangerous = ["rm -rf /", "sudo", "shutdown", "reboot"]
     if any(d in command for d in dangerous):
@@ -477,6 +653,11 @@ def _run_bash(command: str) -> str:
         return out[:50000] if out else "(no output)"
     except subprocess.TimeoutExpired:
         return "Error: Timeout (120s)"
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def _run_read(path: str, limit: int = None) -> str:
     try:
         lines = _safe_path(path).read_text().splitlines()
@@ -485,6 +666,11 @@ def _run_read(path: str, limit: int = None) -> str:
         return "\n".join(lines)[:50000]
     except Exception as e:
         return f"Error: {e}"
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def _run_write(path: str, content: str) -> str:
     try:
         fp = _safe_path(path)
@@ -493,6 +679,11 @@ def _run_write(path: str, content: str) -> str:
         return f"Wrote {len(content)} bytes"
     except Exception as e:
         return f"Error: {e}"
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def _run_edit(path: str, old_text: str, new_text: str) -> str:
     try:
         fp = _safe_path(path)
@@ -504,6 +695,10 @@ def _run_edit(path: str, old_text: str, new_text: str) -> str:
     except Exception as e:
         return f"Error: {e}"
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 # -- Lead-specific protocol handlers --
 def handle_shutdown_request(teammate: str) -> str:
     req_id = str(uuid.uuid4())[:8]
@@ -522,6 +717,10 @@ def handle_shutdown_request(teammate: str) -> str:
     )
     return f"Shutdown request {req_id} sent to '{teammate}'"
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def handle_plan_review(request_id: str, approve: bool, feedback: str = "") -> str:
     req = REQUEST_STORE.get(request_id)
     if not req:
@@ -539,9 +738,17 @@ def handle_plan_review(request_id: str, approve: bool, feedback: str = "") -> st
     )
     return f"Plan {'approved' if approve else 'rejected'} for '{req['from']}'"
 
+<<<<<<< HEAD
 def _check_shutdown_status(request_id: str) -> str:
     return json.dumps(REQUEST_STORE.get(request_id) or {"error": "not found"})
 
+=======
+
+def _check_shutdown_status(request_id: str) -> str:
+    return json.dumps(REQUEST_STORE.get(request_id) or {"error": "not found"})
+
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 # -- Lead tool dispatch (14 tools) --
 TOOL_HANDLERS = {
     "bash":              lambda **kw: _run_bash(kw["command"]),
@@ -592,6 +799,10 @@ TOOLS = [
      "input_schema": {"type": "object", "properties": {"task_id": {"type": "integer"}}, "required": ["task_id"]}},
 ]
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def agent_loop(messages: list):
     while True:
         inbox = BUS.read_inbox("lead")
@@ -629,7 +840,12 @@ def agent_loop(messages: list):
                     "content": str(output),
                 })
         messages.append({"role": "user", "content": results})
+<<<<<<< HEAD
         
+=======
+
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 if __name__ == "__main__":
     history = []
     while True:
@@ -660,4 +876,8 @@ if __name__ == "__main__":
             for block in response_content:
                 if hasattr(block, "text"):
                     print(block.text)
+<<<<<<< HEAD
         print()
+=======
+        print()
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969

@@ -2,11 +2,22 @@
 # Harness: team mailboxes -- multiple models, coordinated through files.
 """
 s15_agent_teams.py - Agent Teams
+<<<<<<< HEAD
 Persistent named agents with file-based JSONL inboxes. Each teammate runs
 its own agent loop in a separate thread. Communication happens through
 append-only inbox files.
     Subagent (s04):  spawn -> execute -> return summary -> destroyed
     Teammate (s15):  spawn -> work -> idle -> work -> ... -> shutdown
+=======
+
+Persistent named agents with file-based JSONL inboxes. Each teammate runs
+its own agent loop in a separate thread. Communication happens through
+append-only inbox files.
+
+    Subagent (s04):  spawn -> execute -> return summary -> destroyed
+    Teammate (s15):  spawn -> work -> idle -> work -> ... -> shutdown
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     .team/config.json                   .team/inbox/
     +----------------------------+      +------------------+
     | {"team_name": "default",   |      | alice.jsonl      |
@@ -16,6 +27,10 @@ append-only inbox files.
     |     "status":"idle"}       |
     |  ]}                        |      send_message("alice", "fix bug"):
     +----------------------------+        open("alice.jsonl", "a").write(msg)
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
                                         read_inbox("alice"):
     spawn_teammate("alice","coder",...)   msgs = [json.loads(l) for l in ...]
          |                                open("alice.jsonl", "w").close()
@@ -27,14 +42,28 @@ append-only inbox files.
     | ... runs tools   |      | ... waits ...    |
     | status -> idle   |      |                  |
     +------------------+      +------------------+
+<<<<<<< HEAD
 Key idea: teammates have names, inboxes, and independent loops.
+=======
+
+Key idea: teammates have names, inboxes, and independent loops.
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 Read this file in this order:
 1. MessageBus: how messages are queued and drained.
 2. TeammateManager: what persistent teammate state looks like.
 3. _teammate_loop / TOOL_HANDLERS: how each named teammate keeps re-entering the same tool loop.
+<<<<<<< HEAD
 Most common confusion:
 - a teammate is not a one-shot subagent
 - an inbox message is not yet a full protocol request
+=======
+
+Most common confusion:
+- a teammate is not a one-shot subagent
+- an inbox message is not yet a full protocol request
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 Teaching boundary:
 this file teaches persistent named workers plus mailboxes.
 Approval protocols and autonomous policies are added in later chapters.
@@ -46,15 +75,23 @@ import subprocess
 import threading
 import time
 from pathlib import Path
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 from anthropic import Anthropic
 from dotenv import load_dotenv
 
 load_dotenv(override=True)
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 if os.getenv("ANTHROPIC_BASE_URL"):
     os.environ.pop("ANTHROPIC_AUTH_TOKEN", None)
 
 WORKDIR = Path.cwd()
+<<<<<<< HEAD
 
 client = Anthropic(base_url=os.getenv("ANTHROPIC_BASE_URL"))
 
@@ -62,6 +99,11 @@ MODEL = os.environ["MODEL_ID"]
 
 TEAM_DIR = WORKDIR / ".team"
 
+=======
+client = Anthropic(base_url=os.getenv("ANTHROPIC_BASE_URL"))
+MODEL = os.environ["MODEL_ID"]
+TEAM_DIR = WORKDIR / ".team"
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 INBOX_DIR = TEAM_DIR / "inbox"
 
 SYSTEM = f"You are a team lead at {WORKDIR}. Spawn teammates and communicate via inboxes."
@@ -75,6 +117,10 @@ VALID_MSG_TYPES = {
     "plan_approval_response",
 }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 # -- MessageBus: JSONL inbox per teammate --
 class MessageBus:
     def __init__(self, inbox_dir: Path):
@@ -97,7 +143,11 @@ class MessageBus:
         with open(inbox_path, "a") as f:
             f.write(json.dumps(msg) + "\n")
         return f"Sent {msg_type} to {to}"
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def read_inbox(self, name: str) -> list:
         inbox_path = self.dir / f"{name}.jsonl"
         if not inbox_path.exists():
@@ -108,7 +158,11 @@ class MessageBus:
                 messages.append(json.loads(line))
         inbox_path.write_text("")
         return messages
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def broadcast(self, sender: str, content: str, teammates: list) -> str:
         count = 0
         for name in teammates:
@@ -116,12 +170,24 @@ class MessageBus:
                 self.send(sender, name, content, "broadcast")
                 count += 1
         return f"Broadcast to {count} teammates"
+<<<<<<< HEAD
     
 BUS = MessageBus(INBOX_DIR)
 
 # -- TeammateManager: persistent named agents with config.json --
 class TeammateManager:
     """Persistent teammate registry plus worker-loop launcher."""
+=======
+
+
+BUS = MessageBus(INBOX_DIR)
+
+
+# -- TeammateManager: persistent named agents with config.json --
+class TeammateManager:
+    """Persistent teammate registry plus worker-loop launcher."""
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def __init__(self, team_dir: Path):
         self.dir = team_dir
         self.dir.mkdir(exist_ok=True)
@@ -133,7 +199,11 @@ class TeammateManager:
         if self.config_path.exists():
             return json.loads(self.config_path.read_text())
         return {"team_name": "default", "members": []}
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def _save_config(self):
         self.config_path.write_text(json.dumps(self.config, indent=2))
 
@@ -142,7 +212,11 @@ class TeammateManager:
             if m["name"] == name:
                 return m
         return None
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def spawn(self, name: str, role: str, prompt: str) -> str:
         member = self._find_member(name)
         if member:
@@ -162,7 +236,11 @@ class TeammateManager:
         self.threads[name] = thread
         thread.start()
         return f"Spawned '{name}' (role: {role})"
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def _teammate_loop(self, name: str, role: str, prompt: str):
         sys_prompt = (
             f"You are '{name}', role: {role}, at {WORKDIR}. "
@@ -218,7 +296,11 @@ class TeammateManager:
         if tool_name == "read_inbox":
             return json.dumps(BUS.read_inbox(sender), indent=2)
         return f"Unknown tool: {tool_name}"
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def _teammate_tools(self) -> list:
         # these base tools are unchanged from s02
         return [
@@ -235,7 +317,11 @@ class TeammateManager:
             {"name": "read_inbox", "description": "Read and drain your inbox.",
              "input_schema": {"type": "object", "properties": {}}},
         ]
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def list_all(self) -> str:
         if not self.config["members"]:
             return "No teammates."
@@ -243,18 +329,34 @@ class TeammateManager:
         for m in self.config["members"]:
             lines.append(f"  {m['name']} ({m['role']}): {m['status']}")
         return "\n".join(lines)
+<<<<<<< HEAD
     
     def member_names(self) -> list:
         return [m["name"] for m in self.config["members"]]
 
 TEAM = TeammateManager(TEAM_DIR)
 
+=======
+
+    def member_names(self) -> list:
+        return [m["name"] for m in self.config["members"]]
+
+
+TEAM = TeammateManager(TEAM_DIR)
+
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 # -- Base tool implementations (these base tools are unchanged from s02) --
 def _safe_path(p: str) -> Path:
     path = (WORKDIR / p).resolve()
     if not path.is_relative_to(WORKDIR):
         raise ValueError(f"Path escapes workspace: {p}")
     return path
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def _run_bash(command: str) -> str:
     dangerous = ["rm -rf /", "sudo", "shutdown", "reboot"]
     if any(d in command for d in dangerous):
@@ -268,6 +370,11 @@ def _run_bash(command: str) -> str:
         return out[:50000] if out else "(no output)"
     except subprocess.TimeoutExpired:
         return "Error: Timeout (120s)"
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def _run_read(path: str, limit: int = None) -> str:
     try:
         lines = _safe_path(path).read_text().splitlines()
@@ -276,6 +383,11 @@ def _run_read(path: str, limit: int = None) -> str:
         return "\n".join(lines)[:50000]
     except Exception as e:
         return f"Error: {e}"
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def _run_write(path: str, content: str) -> str:
     try:
         fp = _safe_path(path)
@@ -284,6 +396,11 @@ def _run_write(path: str, content: str) -> str:
         return f"Wrote {len(content)} bytes"
     except Exception as e:
         return f"Error: {e}"
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def _run_edit(path: str, old_text: str, new_text: str) -> str:
     try:
         fp = _safe_path(path)
@@ -294,7 +411,12 @@ def _run_edit(path: str, old_text: str, new_text: str) -> str:
         return f"Edited {path}"
     except Exception as e:
         return f"Error: {e}"
+<<<<<<< HEAD
     
+=======
+
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 # -- Lead tool dispatch (9 tools) --
 TOOL_HANDLERS = {
     "bash":            lambda **kw: _run_bash(kw["command"]),
@@ -330,6 +452,10 @@ TOOLS = [
      "input_schema": {"type": "object", "properties": {"content": {"type": "string"}}, "required": ["content"]}},
 ]
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def agent_loop(messages: list):
     while True:
         inbox = BUS.read_inbox("lead")
@@ -364,7 +490,12 @@ def agent_loop(messages: list):
                     "content": str(output),
                 })
         messages.append({"role": "user", "content": results})
+<<<<<<< HEAD
         
+=======
+
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 if __name__ == "__main__":
     history = []
     while True:

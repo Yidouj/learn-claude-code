@@ -1,4 +1,5 @@
 [English](./README.md) | [中文](./README-zh.md) | [日本語](./README-ja.md)
+<<<<<<< HEAD
 
 <a href="https://trendshift.io/repositories/19746" target="_blank"><img src="https://trendshift.io/api/badge/repositories/19746" alt="shareAI-lab%2Flearn-claude-code | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
 
@@ -29,9 +30,61 @@ The historical record is unambiguous:
 - **2024-2025 -- LLM agents reshape software engineering.** Claude, GPT, Gemini -- large language models trained on the full breadth of human code and reasoning -- are deployed as coding agents. They read codebases, write implementations, debug failures, and coordinate as teams. The architecture is identical to every previous agent: a trained model, placed in an environment, given tools for perception and action.
 
 Every milestone points to the same fact: **Agency -- the ability to perceive, reason, and act -- is trained, not coded.** But every agent also needs an environment to operate in: an Atari emulator, the Dota 2 client, the StarCraft II engine, an IDE and a terminal. The model supplies the intelligence. The environment supplies the action space. Together they form a complete agent.
+=======
 
-### What an Agent Is NOT
+# Learn Claude Code
 
+A teaching repository for implementers who want to build a high-completion coding-agent harness from scratch.
+
+This repo does not try to mirror every product detail from a production codebase. It focuses on the mechanisms that actually decide whether an agent can work well:
+
+- the loop
+- tools
+- planning
+- delegation
+- context control
+- permissions
+- hooks
+- memory
+- prompt assembly
+- tasks
+- teams
+- isolated execution lanes
+- external capability routing
+
+The goal is simple:
+
+**understand the real design backbone well enough that you can rebuild it yourself.**
+
+## What This Repo Is Really Teaching
+
+One sentence first:
+
+**The model does the reasoning. The harness gives the model a working environment.**
+
+That working environment is made of a few cooperating parts:
+
+- `Agent Loop`: ask the model, run tools, append results, continue
+- `Tools`: the agent's hands
+- `Planning`: a small structure that keeps multi-step work from drifting
+- `Context Management`: keep the active context small and coherent
+- `Permissions`: do not let model intent turn into unsafe execution directly
+- `Hooks`: extend behavior around the loop without rewriting the loop
+- `Memory`: keep only durable facts that should survive sessions
+- `Prompt Construction`: assemble the model input from stable rules and runtime state
+- `Tasks / Teams / Worktree / MCP`: grow the single-agent core into a larger working platform
+
+This is the teaching promise of the repo:
+
+- teach the mainline in a clean order
+- explain unfamiliar concepts before relying on them
+- stay close to real system structure
+- avoid drowning the learner in irrelevant product details
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
+
+## What This Repo Deliberately Does Not Teach
+
+<<<<<<< HEAD
 The word "agent" has been hijacked by an entire prompt-plumbing industry.
 
 Drag-and-drop workflow builders. No-code "AI Agent" platforms. Prompt-chain orchestration libraries. They share a single delusion: that stringing LLM API calls together with if-else branches, node graphs, and hardcoded routing logic constitutes "building an agent."
@@ -49,23 +102,100 @@ When someone says "I am building an agent," they can only mean one of two things
 **2. Building a harness.** Writing the code that gives a model an operational environment. This is what most of us do, and it is the core of this repository.
 
 A harness is everything an agent needs to work in a specific domain:
+=======
+This repo is not trying to preserve every detail that may exist in a real production system.
 
-```
-Harness = Tools + Knowledge + Observation + Action Interfaces + Permissions
+If a detail is not central to the agent's core operating model, it should not dominate the teaching line. That includes things like:
 
+- packaging and release mechanics
+- cross-platform compatibility layers
+- enterprise policy glue
+- telemetry and account wiring
+- historical compatibility branches
+- product-specific naming accidents
+
+Those details may matter in production. They do not belong at the center of a 0-to-1 teaching path.
+
+## Who This Is For
+
+The assumed reader:
+
+- knows basic Python
+- understands functions, classes, lists, and dictionaries
+- may be completely new to agent systems
+
+So the repo tries to keep a few strong teaching rules:
+
+- explain a concept before using it
+- keep one concept fully explained in one main place
+- start from "what it is", then "why it exists", then "how to implement it"
+- avoid forcing beginners to assemble the system from scattered fragments
+
+## Recommended Reading Order
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
+
+The English docs are intended to stand on their own. The chapter order, bridge docs, and mechanism map are aligned across locales, so you can stay inside one language while following the main learning path.
+
+<<<<<<< HEAD
     Tools:          file I/O, shell, network, database, browser
     Knowledge:      product docs, domain references, API specs, style guides
     Observation:    git diff, error logs, browser state, sensor data
     Action:         CLI commands, API calls, UI interactions
     Permissions:    sandbox isolation, approval workflows, trust boundaries
+=======
+- Overview: [`docs/en/s00-architecture-overview.md`](./docs/en/s00-architecture-overview.md)
+- Code Reading Order: [`docs/en/s00f-code-reading-order.md`](./docs/en/s00f-code-reading-order.md)
+- Glossary: [`docs/en/glossary.md`](./docs/en/glossary.md)
+- Teaching Scope: [`docs/en/teaching-scope.md`](./docs/en/teaching-scope.md)
+- Data Structures: [`docs/en/data-structures.md`](./docs/en/data-structures.md)
+
+## If This Is Your First Visit, Start Here
+
+Do not open random chapters first.
+
+The safest path is:
+
+1. Read [`docs/en/s00-architecture-overview.md`](./docs/en/s00-architecture-overview.md) for the full system map.
+2. Read [`docs/en/s00d-chapter-order-rationale.md`](./docs/en/s00d-chapter-order-rationale.md) so the chapter order makes sense before you dive into mechanism detail.
+3. Read [`docs/en/s00f-code-reading-order.md`](./docs/en/s00f-code-reading-order.md) so you know which local files to open first.
+4. Follow the four stages in order: `s01-s06 -> s07-s11 -> s12-s14 -> s15-s19`.
+5. After each stage, stop and rebuild the smallest version yourself before continuing.
+
+If the middle and late chapters start to blur together, reset in this order:
+
+1. [`docs/en/data-structures.md`](./docs/en/data-structures.md)
+2. [`docs/en/entity-map.md`](./docs/en/entity-map.md)
+3. the bridge docs closest to the chapter you are stuck on
+4. then return to the chapter body
+
+## Web Learning Interface
+
+If you want a more visual way to understand the chapter order, stage boundaries, and chapter-to-chapter upgrades, run the built-in teaching site:
+
+```sh
+cd web
+npm install
+npm run dev
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 ```
 
-The model decides. The harness executes. The model reasons. The harness provides context. The model is the driver. The harness is the vehicle.
+Then use these routes:
 
+<<<<<<< HEAD
 This repository teaches you to build the vehicle. A vehicle for coding. But the design patterns generalize to any domain.
+=======
+- `/en`: the English entry page for choosing a reading path
+- `/en/timeline`: the cleanest view of the full mainline
+- `/en/layers`: the four-stage boundary map
+- `/en/compare`: adjacent-step comparison and jump diagnosis
 
-### What Harness Engineers Actually Do
+For a first pass, start with `timeline`.  
+If you are already in the middle and chapter boundaries are getting fuzzy, use `layers` and `compare` before you go deeper into source code.
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 
+### Bridge Docs
+
+<<<<<<< HEAD
 If you are reading this repository, you are most likely a harness engineer. Here is what the job actually entails:
 
 - **Implement tools.** Give the agent hands. File read/write, shell execution, API calls, browser control, database queries. Each tool is one action the agent can take in its environment. Design them atomic, composable, and clearly described.
@@ -346,6 +476,55 @@ Read the `README.md` for the core idea and work through the code. Complex chapte
 Read from s01 through s20 in order. Each chapter assumes you've read the previous ones and ends with a hook into the next.
 
 ---
+=======
+These are not extra main chapters. They are bridge documents that make the middle and late system easier to understand:
+
+- Chapter order rationale: [`docs/en/s00d-chapter-order-rationale.md`](./docs/en/s00d-chapter-order-rationale.md)
+- Code reading order: [`docs/en/s00f-code-reading-order.md`](./docs/en/s00f-code-reading-order.md)
+- Reference module map: [`docs/en/s00e-reference-module-map.md`](./docs/en/s00e-reference-module-map.md)
+- Query control plane: [`docs/en/s00a-query-control-plane.md`](./docs/en/s00a-query-control-plane.md)
+- One request lifecycle: [`docs/en/s00b-one-request-lifecycle.md`](./docs/en/s00b-one-request-lifecycle.md)
+- Query transition model: [`docs/en/s00c-query-transition-model.md`](./docs/en/s00c-query-transition-model.md)
+- Tool control plane: [`docs/en/s02a-tool-control-plane.md`](./docs/en/s02a-tool-control-plane.md)
+- Tool execution runtime: [`docs/en/s02b-tool-execution-runtime.md`](./docs/en/s02b-tool-execution-runtime.md)
+- Message and prompt pipeline: [`docs/en/s10a-message-prompt-pipeline.md`](./docs/en/s10a-message-prompt-pipeline.md)
+- Runtime task model: [`docs/en/s13a-runtime-task-model.md`](./docs/en/s13a-runtime-task-model.md)
+- MCP capability layers: [`docs/en/s19a-mcp-capability-layers.md`](./docs/en/s19a-mcp-capability-layers.md)
+- Team-task-lane model: [`docs/en/team-task-lane-model.md`](./docs/en/team-task-lane-model.md)
+- Entity map: [`docs/en/entity-map.md`](./docs/en/entity-map.md)
+
+### Four Stages
+
+1. `s01-s06`: build a useful single-agent core
+2. `s07-s11`: add safety, extension points, memory, prompt assembly, and recovery
+3. `s12-s14`: turn temporary session planning into durable runtime work
+4. `s15-s19`: move into teams, protocols, autonomy, isolated execution, and external capability routing
+
+### Main Chapters
+
+| Chapter | Topic | What you get |
+|---|---|---|
+| `s00` | Architecture Overview | the global map, key terms, and learning order |
+| `s01` | Agent Loop | the smallest working agent loop |
+| `s02` | Tool Use | a stable tool dispatch layer |
+| `s03` | Todo / Planning | a visible session plan |
+| `s04` | Subagent | fresh context per delegated subtask |
+| `s05` | Skills | load specialized knowledge only when needed |
+| `s06` | Context Compact | keep the active window small |
+| `s07` | Permission System | a safety gate before execution |
+| `s08` | Hook System | extension points around the loop |
+| `s09` | Memory System | durable cross-session knowledge |
+| `s10` | System Prompt | section-based prompt assembly |
+| `s11` | Error Recovery | continuation and retry branches |
+| `s12` | Task System | persistent task graph |
+| `s13` | Background Tasks | non-blocking execution |
+| `s14` | Cron Scheduler | time-based triggers |
+| `s15` | Agent Teams | persistent teammates |
+| `s16` | Team Protocols | shared coordination rules |
+| `s17` | Autonomous Agents | self-claiming and self-resume |
+| `s18` | Worktree Isolation | isolated execution lanes |
+| `s19` | MCP & Plugin | external capability routing |
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 
 ## Quick Start
 
@@ -355,6 +534,7 @@ Read from s01 through s20 in order. Each chapter assumes you've read the previou
 git clone https://github.com/shareAI-lab/learn-claude-code
 cd learn-claude-code
 pip install -r requirements.txt
+<<<<<<< HEAD
 cp .env.example .env   # configure ANTHROPIC_API_KEY
 
 python s01_agent_loop/code.py        # Start here -- one loop + bash
@@ -373,17 +553,60 @@ python agents/s_full.py
 ### Web Platform
 
 The current web app still renders the legacy `docs/` s01-s12 track. Use the root-level folders for the new s01-s20 track.
-
-```sh
-cd web && npm install && npm run dev   # http://localhost:3000
+=======
+cp .env.example .env
 ```
 
+Then configure `ANTHROPIC_API_KEY` or a compatible endpoint in `.env`, and run:
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
+
+```sh
+python agents/s01_agent_loop.py
+python agents/s18_worktree_task_isolation.py
+python agents/s19_mcp_plugin.py
+python agents/s_full.py
+```
+
+<<<<<<< HEAD
 ---
 
 ## Project Structure
+=======
+Suggested order:
 
-```
+1. Run `s01` and make sure the minimal loop really works.
+2. Read `s00`, then move through `s01 -> s11` in order.
+3. Only after the single-agent core plus its control plane feel stable, continue into `s12 -> s19`.
+4. Read `s_full.py` last, after the mechanisms already make sense separately.
+
+## How To Read Each Chapter
+
+Each chapter is easier to absorb if you keep the same reading rhythm:
+
+1. what problem appears without this mechanism
+2. what the new concept means
+3. what the smallest correct implementation looks like
+4. where the state actually lives
+5. how it plugs back into the loop
+6. where to stop first, and what can wait until later
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
+
+If you keep asking:
+
+- "Is this core mainline or just a side detail?"
+- "Where does this state actually live?"
+
+go back to:
+
+- [`docs/en/teaching-scope.md`](./docs/en/teaching-scope.md)
+- [`docs/en/data-structures.md`](./docs/en/data-structures.md)
+- [`docs/en/entity-map.md`](./docs/en/entity-map.md)
+
+## Repository Structure
+
+```text
 learn-claude-code/
+<<<<<<< HEAD
   s01_agent_loop/          # one folder per chapter
     README.md              #   Chinese source (complete narrative)
     README.en.md           #   English translation
@@ -406,11 +629,38 @@ learn-claude-code/
 ## What's Next
 
 After 20 lessons, you understand harness engineering from the inside out. Two paths to turn that knowledge into product:
+=======
+├── agents/              # runnable Python reference implementations per chapter
+├── docs/zh/             # Chinese mainline docs
+├── docs/en/             # English docs
+├── docs/ja/             # Japanese docs
+├── skills/              # skill files used in s05
+├── web/                 # web teaching platform
+└── requirements.txt
+```
 
-### Kode Agent CLI -- Open-Source Coding Agent CLI
+## Language Status
 
-> `npm i -g @shareai-lab/kode`
+Chinese is still the canonical teaching line and the fastest-moving version.
 
+- `zh`: most reviewed and most complete
+- `en`: main chapters plus the major bridge docs are available
+- `ja`: main chapters plus the major bridge docs are available
+
+If you want the fullest and most frequently refined explanation path, use the Chinese docs first.
+
+## End Goal
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
+
+By the end of the repo, you should be able to answer these questions clearly:
+
+- what is the minimum state a coding agent needs?
+- why is `tool_result` the center of the loop?
+- when should you use a subagent instead of stuffing more into one context?
+- what problem do permissions, hooks, memory, prompt assembly, and tasks each solve?
+- when should a single-agent system grow into tasks, teams, worktrees, and MCP?
+
+<<<<<<< HEAD
 Skill and LSP support, Windows compatible, works with GLM / MiniMax / DeepSeek and other open models. Install and go.
 
 GitHub: **[shareAI-lab/Kode-Agent](https://github.com/shareAI-lab/Kode-Agent)**
@@ -458,3 +708,6 @@ MIT
 **Bash is all you need. Real agents are all the universe needs.**
 
 **This is not "copy the source code." This is "grasp the key designs and build it yourself."**
+=======
+If you can answer those questions clearly and build a similar system yourself, this repo has done its job.
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969

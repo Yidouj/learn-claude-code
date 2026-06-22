@@ -2,10 +2,20 @@
 # Harness: resilience -- a robust agent recovers instead of crashing.
 """
 s11_error_recovery.py - Error Recovery
+<<<<<<< HEAD
 Teaching demo of three recovery paths:
 - continue when output is truncated
 - compact when context grows too large
 - back off when transport errors are temporary
+=======
+
+Teaching demo of three recovery paths:
+
+- continue when output is truncated
+- compact when context grows too large
+- back off when transport errors are temporary
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     LLM response
          |
          v
@@ -29,6 +39,10 @@ Teaching demo of three recovery paths:
          |                           Up to 3 retries.
          |
          +-- "end_turn" -----> [Normal exit]
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     Recovery priority (first match wins):
     1. max_tokens -> inject continuation, retry
     2. prompt_too_long -> compact, retry
@@ -42,6 +56,10 @@ import random
 import subprocess
 import time
 from pathlib import Path
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 from anthropic import Anthropic, APIError
 from dotenv import load_dotenv
 
@@ -51,9 +69,13 @@ if os.getenv("ANTHROPIC_BASE_URL"):
     os.environ.pop("ANTHROPIC_AUTH_TOKEN", None)
 
 WORKDIR = Path.cwd()
+<<<<<<< HEAD
 
 client = Anthropic(base_url=os.getenv("ANTHROPIC_BASE_URL"))
 
+=======
+client = Anthropic(base_url=os.getenv("ANTHROPIC_BASE_URL"))
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 MODEL = os.environ["MODEL_ID"]
 
 # Recovery constants
@@ -61,15 +83,27 @@ MAX_RECOVERY_ATTEMPTS = 3
 BACKOFF_BASE_DELAY = 1.0  # seconds
 BACKOFF_MAX_DELAY = 30.0  # seconds
 TOKEN_THRESHOLD = 50000   # chars / 4 ~ tokens for compact trigger
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 CONTINUATION_MESSAGE = (
     "Output limit hit. Continue directly from where you stopped -- "
     "no recap, no repetition. Pick up mid-sentence if needed."
 )
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def estimate_tokens(messages: list) -> int:
     """Rough token estimate: ~4 chars per token."""
     return len(json.dumps(messages, default=str)) // 4
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def auto_compact(messages: list) -> list:
     """
     Compress conversation history into a short continuation summary.
@@ -93,6 +127,10 @@ def auto_compact(messages: list) -> list:
         summary = response.content[0].text
     except Exception as e:
         summary = f"(compact failed: {e}). Previous context lost."
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     continuation = (
         "This session continues from a previous conversation that was compacted. "
         f"Summary of prior context:\n\n{summary}\n\n"
@@ -100,18 +138,31 @@ def auto_compact(messages: list) -> list:
     )
     return [{"role": "user", "content": continuation}]
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def backoff_delay(attempt: int) -> float:
     """Exponential backoff with jitter: base * 2^attempt + random(0, 1)."""
     delay = min(BACKOFF_BASE_DELAY * (2 ** attempt), BACKOFF_MAX_DELAY)
     jitter = random.uniform(0, 1)
     return delay + jitter
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 # -- Tool implementations --
 def safe_path(p: str) -> Path:
     path = (WORKDIR / p).resolve()
     if not path.is_relative_to(WORKDIR):
         raise ValueError(f"Path escapes workspace: {p}")
     return path
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def run_bash(command: str) -> str:
     dangerous = ["rm -rf /", "sudo", "shutdown", "reboot", "> /dev/"]
     if any(d in command for d in dangerous):
@@ -123,6 +174,11 @@ def run_bash(command: str) -> str:
         return out[:50000] if out else "(no output)"
     except subprocess.TimeoutExpired:
         return "Error: Timeout (120s)"
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def run_read(path: str, limit: int = None) -> str:
     try:
         lines = safe_path(path).read_text().splitlines()
@@ -131,6 +187,11 @@ def run_read(path: str, limit: int = None) -> str:
         return "\n".join(lines)[:50000]
     except Exception as e:
         return f"Error: {e}"
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def run_write(path: str, content: str) -> str:
     try:
         fp = safe_path(path)
@@ -139,6 +200,11 @@ def run_write(path: str, content: str) -> str:
         return f"Wrote {len(content)} bytes"
     except Exception as e:
         return f"Error: {e}"
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def run_edit(path: str, old_text: str, new_text: str) -> str:
     try:
         fp = safe_path(path)
@@ -150,6 +216,10 @@ def run_edit(path: str, old_text: str, new_text: str) -> str:
     except Exception as e:
         return f"Error: {e}"
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 TOOL_HANDLERS = {
     "bash":       lambda **kw: run_bash(kw["command"]),
     "read_file":  lambda **kw: run_read(kw["path"], kw.get("limit")),
@@ -168,17 +238,31 @@ TOOLS = [
      "input_schema": {"type": "object", "properties": {"path": {"type": "string"}, "old_text": {"type": "string"}, "new_text": {"type": "string"}}, "required": ["path", "old_text", "new_text"]}},
 ]
 
+<<<<<<< HEAD
 
 SYSTEM = f"You are a coding agent at {WORKDIR}. Use tools to solve tasks."
 
 def agent_loop(messages: list):
     """
     Error-recovering agent loop with three paths:
+=======
+SYSTEM = f"You are a coding agent at {WORKDIR}. Use tools to solve tasks."
+
+
+def agent_loop(messages: list):
+    """
+    Error-recovering agent loop with three paths:
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     1. continue after max_tokens
     2. compact after prompt-too-long
     3. back off after transient transport failure
     """
     max_output_recovery_count = 0
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     while True:
         # -- Attempt the API call with connection retry --
         response = None
@@ -189,13 +273,24 @@ def agent_loop(messages: list):
                     tools=TOOLS, max_tokens=8000,
                 )
                 break  # success
+<<<<<<< HEAD
             except APIError as e:
                 error_body = str(e).lower()
+=======
+
+            except APIError as e:
+                error_body = str(e).lower()
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
                 # Strategy 2: prompt_too_long -> compact and retry
                 if "overlong_prompt" in error_body or ("prompt" in error_body and "long" in error_body):
                     print(f"[Recovery] Prompt too long. Compacting... (attempt {attempt + 1})")
                     messages[:] = auto_compact(messages)
                     continue
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
                 # Strategy 3: connection/rate errors -> backoff
                 if attempt < MAX_RECOVERY_ATTEMPTS:
                     delay = backoff_delay(attempt)
@@ -203,9 +298,17 @@ def agent_loop(messages: list):
                           f"Retrying in {delay:.1f}s (attempt {attempt + 1}/{MAX_RECOVERY_ATTEMPTS})")
                     time.sleep(delay)
                     continue
+<<<<<<< HEAD
                 # All retries exhausted
                 print(f"[Error] API call failed after {MAX_RECOVERY_ATTEMPTS} retries: {e}")
                 return
+=======
+
+                # All retries exhausted
+                print(f"[Error] API call failed after {MAX_RECOVERY_ATTEMPTS} retries: {e}")
+                return
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
             except (ConnectionError, TimeoutError, OSError) as e:
                 # Strategy 3: network-level errors -> backoff
                 if attempt < MAX_RECOVERY_ATTEMPTS:
@@ -214,12 +317,25 @@ def agent_loop(messages: list):
                           f"Retrying in {delay:.1f}s (attempt {attempt + 1}/{MAX_RECOVERY_ATTEMPTS})")
                     time.sleep(delay)
                     continue
+<<<<<<< HEAD
                 print(f"[Error] Connection failed after {MAX_RECOVERY_ATTEMPTS} retries: {e}")
                 return
         if response is None:
             print("[Error] No response received.")
             return
         messages.append({"role": "assistant", "content": response.content})
+=======
+
+                print(f"[Error] Connection failed after {MAX_RECOVERY_ATTEMPTS} retries: {e}")
+                return
+
+        if response is None:
+            print("[Error] No response received.")
+            return
+
+        messages.append({"role": "assistant", "content": response.content})
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
         # -- Strategy 1: max_tokens recovery --
         if response.stop_reason == "max_tokens":
             max_output_recovery_count += 1
@@ -233,11 +349,22 @@ def agent_loop(messages: list):
                 print(f"[Error] max_tokens recovery exhausted "
                       f"({MAX_RECOVERY_ATTEMPTS} attempts). Stopping.")
                 return
+<<<<<<< HEAD
         # Reset max_tokens counter on successful non-max_tokens response
         max_output_recovery_count = 0
         # -- Normal end_turn: no tool use requested --
         if response.stop_reason != "tool_use":
             return
+=======
+
+        # Reset max_tokens counter on successful non-max_tokens response
+        max_output_recovery_count = 0
+
+        # -- Normal end_turn: no tool use requested --
+        if response.stop_reason != "tool_use":
+            return
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
         # -- Process tool calls --
         results = []
         for block in response.content:
@@ -254,12 +381,22 @@ def agent_loop(messages: list):
                 "tool_use_id": block.id,
                 "content": str(output),
             })
+<<<<<<< HEAD
         messages.append({"role": "user", "content": results})
+=======
+
+        messages.append({"role": "user", "content": results})
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
         # Check if we should auto-compact (proactive, not just reactive)
         if estimate_tokens(messages) > TOKEN_THRESHOLD:
             print("[Recovery] Token estimate exceeds threshold. Auto-compacting...")
             messages[:] = auto_compact(messages)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 if __name__ == "__main__":
     print("[Error recovery enabled: max_tokens / prompt_too_long / connection backoff]")
     history = []
@@ -277,4 +414,8 @@ if __name__ == "__main__":
             for block in response_content:
                 if hasattr(block, "text"):
                     print(block.text)
+<<<<<<< HEAD
         print()
+=======
+        print()
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969

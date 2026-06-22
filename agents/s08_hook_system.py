@@ -2,19 +2,38 @@
 # Harness: extensibility -- injecting behavior without touching the loop.
 """
 s08_hook_system.py - Hook System
+<<<<<<< HEAD
 Hooks are extension points around the main loop.
 They let readers add behavior without rewriting the loop itself.
+=======
+
+Hooks are extension points around the main loop.
+They let readers add behavior without rewriting the loop itself.
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 Teaching version:
   - SessionStart
   - PreToolUse
   - PostToolUse
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 Teaching exit-code contract:
   - 0 -> continue
   - 1 -> block
   - 2 -> inject a message
+<<<<<<< HEAD
 This is intentionally simpler than a production system. The goal here is to
 teach the extension pattern clearly before introducing event-specific edge
 cases.
+=======
+
+This is intentionally simpler than a production system. The goal here is to
+teach the extension pattern clearly before introducing event-specific edge
+cases.
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 Key insight: "Extend the agent without touching the loop."
 """
 
@@ -22,6 +41,10 @@ import json
 import os
 import subprocess
 from pathlib import Path
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 from anthropic import Anthropic
 from dotenv import load_dotenv
 
@@ -31,13 +54,18 @@ if os.getenv("ANTHROPIC_BASE_URL"):
     os.environ.pop("ANTHROPIC_AUTH_TOKEN", None)
 
 WORKDIR = Path.cwd()
+<<<<<<< HEAD
 
 client = Anthropic(base_url=os.getenv("ANTHROPIC_BASE_URL"))
 
+=======
+client = Anthropic(base_url=os.getenv("ANTHROPIC_BASE_URL"))
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 MODEL = os.environ["MODEL_ID"]
 
 # The teaching version keeps only the three clearest events. More complete
 # systems can grow the event surface later.
+<<<<<<< HEAD
 HOOK_EVENTS = ("PreToolUse", "PostToolUse", "SessionStart")
 HOOK_TIMEOUT = 30  # seconds
 
@@ -50,11 +78,32 @@ TRUST_MARKER = WORKDIR / ".claude" / ".claude_trusted"
 class HookManager:
     """
     Load and execute hooks from .hooks.json configuration.
+=======
+
+HOOK_EVENTS = ("PreToolUse", "PostToolUse", "SessionStart")
+HOOK_TIMEOUT = 30  # seconds
+# Real CC timeouts:
+#   TOOL_HOOK_EXECUTION_TIMEOUT_MS = 600000 (10 minutes for tool hooks)
+#   SESSION_END_HOOK_TIMEOUT_MS = 1500 (1.5 seconds for SessionEnd hooks)
+
+# Workspace trust marker. Hooks only run if this file exists (or SDK mode).
+TRUST_MARKER = WORKDIR / ".claude" / ".claude_trusted"
+
+
+class HookManager:
+    """
+    Load and execute hooks from .hooks.json configuration.
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     The hook manager does three simple jobs:
     - load hook definitions
     - run matching commands for an event
     - aggregate block / message results for the caller
     """
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def __init__(self, config_path: Path = None, sdk_mode: bool = False):
         self.hooks = {"PreToolUse": [], "PostToolUse": [], "SessionStart": []}
         self._sdk_mode = sdk_mode
@@ -71,25 +120,47 @@ class HookManager:
     def _check_workspace_trust(self) -> bool:
         """
         Check whether the current workspace is trusted.
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
         The teaching version uses a simple trust marker file.
         In SDK mode, trust is treated as implicit.
         """
         if self._sdk_mode:
             return True
         return TRUST_MARKER.exists()
+<<<<<<< HEAD
     
     def run_hooks(self, event: str, context: dict = None) -> dict:
         """
         Execute all hooks for an event.
+=======
+
+    def run_hooks(self, event: str, context: dict = None) -> dict:
+        """
+        Execute all hooks for an event.
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
         Returns: {"blocked": bool, "messages": list[str]}
           - blocked: True if any hook returned exit code 1
           - messages: stderr content from exit-code-2 hooks (to inject)
         """
         result = {"blocked": False, "messages": []}
+<<<<<<< HEAD
         # Trust gate: refuse to run hooks in untrusted workspaces
         if not self._check_workspace_trust():
             return result
         hooks = self.hooks.get(event, [])
+=======
+
+        # Trust gate: refuse to run hooks in untrusted workspaces
+        if not self._check_workspace_trust():
+            return result
+
+        hooks = self.hooks.get(event, [])
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
         for hook_def in hooks:
             # Check matcher (tool name filter for PreToolUse/PostToolUse)
             matcher = hook_def.get("matcher")
@@ -97,9 +168,17 @@ class HookManager:
                 tool_name = context.get("tool_name", "")
                 if matcher != "*" and matcher != tool_name:
                     continue
+<<<<<<< HEAD
             command = hook_def.get("command", "")
             if not command:
                 continue
+=======
+
+            command = hook_def.get("command", "")
+            if not command:
+                continue
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
             # Build environment with hook context
             env = dict(os.environ)
             if context:
@@ -110,15 +189,27 @@ class HookManager:
                 if "tool_output" in context:
                     env["HOOK_TOOL_OUTPUT"] = str(
                         context["tool_output"])[:10000]
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
             try:
                 r = subprocess.run(
                     command, shell=True, cwd=WORKDIR, env=env,
                     capture_output=True, text=True, timeout=HOOK_TIMEOUT,
                 )
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
                 if r.returncode == 0:
                     # Continue silently
                     if r.stdout.strip():
                         print(f"  [hook:{event}] {r.stdout.strip()[:100]}")
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
                     # Optional structured stdout: small extension point that
                     # keeps the teaching contract simple.
                     try:
@@ -133,24 +224,43 @@ class HookManager:
                                 hook_output["permissionDecision"])
                     except (json.JSONDecodeError, TypeError):
                         pass  # stdout was not JSON -- normal for simple hooks
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
                 elif r.returncode == 1:
                     # Block execution
                     result["blocked"] = True
                     reason = r.stderr.strip() or "Blocked by hook"
                     result["block_reason"] = reason
                     print(f"  [hook:{event}] BLOCKED: {reason[:200]}")
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
                 elif r.returncode == 2:
                     # Inject message
                     msg = r.stderr.strip()
                     if msg:
                         result["messages"].append(msg)
                         print(f"  [hook:{event}] INJECT: {msg[:200]}")
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
             except subprocess.TimeoutExpired:
                 print(f"  [hook:{event}] Timeout ({HOOK_TIMEOUT}s)")
             except Exception as e:
                 print(f"  [hook:{event}] Error: {e}")
+<<<<<<< HEAD
         return result
     
+=======
+
+        return result
+
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 # -- Tool implementations (same as s02) --
 def safe_path(p: str) -> Path:
     path = (WORKDIR / p).resolve()
@@ -158,6 +268,10 @@ def safe_path(p: str) -> Path:
         raise ValueError(f"Path escapes workspace: {p}")
     return path
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def run_bash(command: str) -> str:
     dangerous = ["rm -rf /", "sudo", "shutdown", "reboot", "> /dev/"]
     if any(d in command for d in dangerous):
@@ -169,7 +283,12 @@ def run_bash(command: str) -> str:
         return out[:50000] if out else "(no output)"
     except subprocess.TimeoutExpired:
         return "Error: Timeout (120s)"
+<<<<<<< HEAD
     
+=======
+
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def run_read(path: str, limit: int = None) -> str:
     try:
         lines = safe_path(path).read_text().splitlines()
@@ -178,7 +297,12 @@ def run_read(path: str, limit: int = None) -> str:
         return "\n".join(lines)[:50000]
     except Exception as e:
         return f"Error: {e}"
+<<<<<<< HEAD
     
+=======
+
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def run_write(path: str, content: str) -> str:
     try:
         fp = safe_path(path)
@@ -187,7 +311,12 @@ def run_write(path: str, content: str) -> str:
         return f"Wrote {len(content)} bytes"
     except Exception as e:
         return f"Error: {e}"
+<<<<<<< HEAD
     
+=======
+
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def run_edit(path: str, old_text: str, new_text: str) -> str:
     try:
         fp = safe_path(path)
@@ -198,7 +327,12 @@ def run_edit(path: str, old_text: str, new_text: str) -> str:
         return f"Edited {path}"
     except Exception as e:
         return f"Error: {e}"
+<<<<<<< HEAD
     
+=======
+
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 TOOL_HANDLERS = {
     "bash":       lambda **kw: run_bash(kw["command"]),
     "read_file":  lambda **kw: run_read(kw["path"], kw.get("limit")),
@@ -219,9 +353,17 @@ TOOLS = [
 
 SYSTEM = f"You are a coding agent at {WORKDIR}. Use tools to solve tasks."
 
+<<<<<<< HEAD
 def agent_loop(messages: list, hooks: HookManager):
     """
     The hook-aware agent loop.
+=======
+
+def agent_loop(messages: list, hooks: HookManager):
+    """
+    The hook-aware agent loop.
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     The teaching version keeps only the clearest integration points:
     SessionStart, PreToolUse, execute tool, PostToolUse.
     """
@@ -231,22 +373,43 @@ def agent_loop(messages: list, hooks: HookManager):
             tools=TOOLS, max_tokens=8000,
         )
         messages.append({"role": "assistant", "content": response.content})
+<<<<<<< HEAD
         if response.stop_reason != "tool_use":
             return
+=======
+
+        if response.stop_reason != "tool_use":
+            return
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
         results = []
         for block in response.content:
             if block.type != "tool_use":
                 continue
+<<<<<<< HEAD
             tool_input = dict(block.input or {})
             ctx = {"tool_name": block.name, "tool_input": tool_input}
             # -- PreToolUse hooks --
             pre_result = hooks.run_hooks("PreToolUse", ctx)
+=======
+
+            tool_input = dict(block.input or {})
+            ctx = {"tool_name": block.name, "tool_input": tool_input}
+
+            # -- PreToolUse hooks --
+            pre_result = hooks.run_hooks("PreToolUse", ctx)
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
             # Inject hook messages into results
             for msg in pre_result.get("messages", []):
                 results.append({
                     "type": "tool_result", "tool_use_id": block.id,
                     "content": f"[Hook message]: {msg}",
                 })
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
             if pre_result.get("blocked"):
                 reason = pre_result.get("block_reason", "Blocked by hook")
                 output = f"Tool blocked by PreToolUse hook: {reason}"
@@ -255,6 +418,10 @@ def agent_loop(messages: list, hooks: HookManager):
                     "content": output,
                 })
                 continue
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
             # -- Execute tool --
             handler = TOOL_HANDLERS.get(block.name)
             try:
@@ -262,22 +429,47 @@ def agent_loop(messages: list, hooks: HookManager):
             except Exception as e:
                 output = f"Error: {e}"
             print(f"> {block.name}: {str(output)[:200]}")
+<<<<<<< HEAD
             # -- PostToolUse hooks --
             ctx["tool_output"] = output
             post_result = hooks.run_hooks("PostToolUse", ctx)
             # Inject post-hook messages
             for msg in post_result.get("messages", []):
                 output += f"\n[Hook note]: {msg}"
+=======
+
+            # -- PostToolUse hooks --
+            ctx["tool_output"] = output
+            post_result = hooks.run_hooks("PostToolUse", ctx)
+
+            # Inject post-hook messages
+            for msg in post_result.get("messages", []):
+                output += f"\n[Hook note]: {msg}"
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
             results.append({
                 "type": "tool_result", "tool_use_id": block.id,
                 "content": str(output),
             })
+<<<<<<< HEAD
         messages.append({"role": "user", "content": results})
 
 if __name__ == "__main__":
     hooks = HookManager()
     # Fire SessionStart hooks
     hooks.run_hooks("SessionStart", {"tool_name": "", "tool_input": {}})
+=======
+
+        messages.append({"role": "user", "content": results})
+
+
+if __name__ == "__main__":
+    hooks = HookManager()
+
+    # Fire SessionStart hooks
+    hooks.run_hooks("SessionStart", {"tool_name": "", "tool_input": {}})
+
+>>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     history = []
     while True:
         try:
