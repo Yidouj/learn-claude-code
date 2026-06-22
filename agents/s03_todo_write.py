@@ -72,7 +72,11 @@ class TodoManager:
         if in_progress_count > 1:
             raise ValueError("Only one task can be in_progress at a time")
         self.items = validated
-        return self.render()
+        render = self.render()
+        print('这是--------')
+        print(render)
+        print('--------')
+        return render
 
     def render(self) -> str:
         if not self.items:
