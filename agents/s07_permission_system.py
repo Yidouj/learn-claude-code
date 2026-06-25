@@ -2,50 +2,26 @@
 # Harness: safety -- the pipeline between intent and execution.
 """
 s07_permission_system.py - Permission System
-<<<<<<< HEAD
 Every tool call passes through a permission pipeline before execution.
-=======
-
-Every tool call passes through a permission pipeline before execution.
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 Teaching pipeline:
   1. deny rules
   2. mode check
   3. allow rules
   4. ask user
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 This version intentionally teaches three modes first:
   - default
   - plan
   - auto
-<<<<<<< HEAD
 That is enough to build a real, understandable permission system without
 burying readers under every advanced policy branch on day one.
 Key insight: "Safety is a pipeline, not a boolean."
 """
-=======
-
-That is enough to build a real, understandable permission system without
-burying readers under every advanced policy branch on day one.
-
-Key insight: "Safety is a pipeline, not a boolean."
-"""
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 import json
 import os
 import re
 import subprocess
 from fnmatch import fnmatch
 from pathlib import Path
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 from anthropic import Anthropic
 from dotenv import load_dotenv
 
@@ -55,48 +31,26 @@ if os.getenv("ANTHROPIC_BASE_URL"):
     os.environ.pop("ANTHROPIC_AUTH_TOKEN", None)
 
 WORKDIR = Path.cwd()
-<<<<<<< HEAD
 
 client = Anthropic(base_url=os.getenv("ANTHROPIC_BASE_URL"))
 
-=======
-client = Anthropic(base_url=os.getenv("ANTHROPIC_BASE_URL"))
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 MODEL = os.environ["MODEL_ID"]
 
 # -- Permission modes --
 # Teaching version starts with three clear modes first.
 MODES = ("default", "plan", "auto")
-<<<<<<< HEAD
 READ_ONLY_TOOLS = {"read_file", "bash_readonly"}
 # Tools that modify state
 WRITE_TOOLS = {"write_file", "edit_file", "bash"}
 
-=======
-
-READ_ONLY_TOOLS = {"read_file", "bash_readonly"}
-
-# Tools that modify state
-WRITE_TOOLS = {"write_file", "edit_file", "bash"}
-
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 # -- Bash security validation --
 class BashSecurityValidator:
     """
     Validate bash commands for obviously dangerous patterns.
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     The teaching version deliberately keeps this small and easy to read.
     First catch a few high-risk patterns, then let the permission pipeline
     decide whether to deny or ask the user.
     """
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     VALIDATORS = [
         ("shell_metachar", r"[;&|`$]"),       # shell metacharacters
         ("sudo", r"\bsudo\b"),                 # privilege escalation
@@ -104,17 +58,11 @@ class BashSecurityValidator:
         ("cmd_substitution", r"\$\("),          # command substitution
         ("ifs_injection", r"\bIFS\s*="),        # IFS manipulation
     ]
-<<<<<<< HEAD
-    def validate(self, command: str) -> list:
-        """
-        Check a bash command against all validators.
-=======
 
     def validate(self, command: str) -> list:
         """
         Check a bash command against all validators.
 
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
         Returns list of (validator_name, matched_pattern) tuples for failures.
         An empty list means the command passed all validators.
         """
@@ -123,17 +71,11 @@ class BashSecurityValidator:
             if re.search(pattern, command):
                 failures.append((name, pattern))
         return failures
-<<<<<<< HEAD
-    def is_safe(self, command: str) -> bool:
-        """Convenience: returns True only if no validators triggered."""
-        return len(self.validate(command)) == 0
-=======
 
     def is_safe(self, command: str) -> bool:
         """Convenience: returns True only if no validators triggered."""
         return len(self.validate(command)) == 0
 
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def describe_failures(self, command: str) -> str:
         """Human-readable summary of validation failures."""
         failures = self.validate(command)
@@ -147,10 +89,6 @@ class BashSecurityValidator:
 def is_workspace_trusted(workspace: Path = None) -> bool:
     """
     Check if a workspace has been explicitly marked as trusted.
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     The teaching version uses a simple marker file. A more complete system
     can layer richer trust flows on top of the same idea.
     """
@@ -158,17 +96,11 @@ def is_workspace_trusted(workspace: Path = None) -> bool:
     trust_marker = ws / ".claude" / ".claude_trusted"
     return trust_marker.exists()
 
-<<<<<<< HEAD
-# Singleton validator instance used by the permission pipeline
-bash_validator = BashSecurityValidator()
-
-=======
 
 # Singleton validator instance used by the permission pipeline
 bash_validator = BashSecurityValidator()
 
 
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 # -- Permission rules --
 # Rules are checked in order: first match wins.
 # Format: {"tool": "<tool_name_or_*>", "path": "<glob_or_*>", "behavior": "allow|deny|ask"}
@@ -180,15 +112,6 @@ DEFAULT_RULES = [
     {"tool": "read_file", "path": "*", "behavior": "allow"},
 ]
 
-<<<<<<< HEAD
-class PermissionManager:
-    """
-    Manages permission decisions for tool calls.
-    Pipeline: deny_rules -> mode_check -> allow_rules -> ask_user
-    The teaching version keeps the decision path short on purpose so readers
-    can implement it themselves before adding more advanced policy layers.
-    """
-=======
 
 class PermissionManager:
     """
@@ -200,7 +123,6 @@ class PermissionManager:
     can implement it themselves before adding more advanced policy layers.
     """
 
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def __init__(self, mode: str = "default", rules: list = None):
         if mode not in MODES:
             raise ValueError(f"Unknown mode: {mode}. Choose from {MODES}")
@@ -210,11 +132,6 @@ class PermissionManager:
         # asking for actions the system will not allow.
         self.consecutive_denials = 0
         self.max_consecutive_denials = 3
-<<<<<<< HEAD
-        
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def check(self, tool_name: str, tool_input: dict) -> dict:
         """
         Returns: {"behavior": "allow"|"deny"|"ask", "reason": str}
@@ -236,10 +153,6 @@ class PermissionManager:
                 desc = bash_validator.describe_failures(command)
                 return {"behavior": "ask",
                         "reason": f"Bash validator flagged: {desc}"}
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
         # Step 1: Deny rules (bypass-immune, checked first always)
         for rule in self.rules:
             if rule["behavior"] != "deny":
@@ -247,10 +160,6 @@ class PermissionManager:
             if self._matches(rule, tool_name, tool_input):
                 return {"behavior": "deny",
                         "reason": f"Blocked by deny rule: {rule}"}
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
         # Step 2: Mode-based decisions
         if self.mode == "plan":
             # Plan mode: deny all write operations, allow reads
@@ -258,10 +167,6 @@ class PermissionManager:
                 return {"behavior": "deny",
                         "reason": "Plan mode: write operations are blocked"}
             return {"behavior": "allow", "reason": "Plan mode: read-only allowed"}
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
         if self.mode == "auto":
             # Auto mode: auto-allow read-only tools, ask for writes
             if tool_name in READ_ONLY_TOOLS or tool_name == "read_file":
@@ -269,10 +174,6 @@ class PermissionManager:
                         "reason": "Auto mode: read-only tool auto-approved"}
             # Teaching: fall through to allow rules, then ask
             pass
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
         # Step 3: Allow rules
         for rule in self.rules:
             if rule["behavior"] != "allow":
@@ -281,18 +182,11 @@ class PermissionManager:
                 self.consecutive_denials = 0
                 return {"behavior": "allow",
                         "reason": f"Matched allow rule: {rule}"}
-<<<<<<< HEAD
-        # Step 4: Ask user (default behavior for unmatched tools)
-        return {"behavior": "ask",
-                "reason": f"No rule matched for {tool_name}, asking user"}
-    
-=======
 
         # Step 4: Ask user (default behavior for unmatched tools)
         return {"behavior": "ask",
                 "reason": f"No rule matched for {tool_name}, asking user"}
 
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def ask_user(self, tool_name: str, tool_input: dict) -> bool:
         """Interactive approval prompt. Returns True if approved."""
         preview = json.dumps(tool_input, ensure_ascii=False)[:200]
@@ -301,10 +195,6 @@ class PermissionManager:
             answer = input("  Allow? (y/n/always): ").strip().lower()
         except (EOFError, KeyboardInterrupt):
             return False
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
         if answer == "always":
             # Add permanent allow rule for this tool
             self.rules.append({"tool": tool_name, "path": "*", "behavior": "allow"})
@@ -313,21 +203,12 @@ class PermissionManager:
         if answer in ("y", "yes"):
             self.consecutive_denials = 0
             return True
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
         # Track denials for circuit breaker
         self.consecutive_denials += 1
         if self.consecutive_denials >= self.max_consecutive_denials:
             print(f"  [{self.consecutive_denials} consecutive denials -- "
                   "consider switching to plan mode]")
         return False
-<<<<<<< HEAD
-    
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def _matches(self, rule: dict, tool_name: str, tool_input: dict) -> bool:
         """Check if a rule matches the tool call."""
         # Tool name match
@@ -346,10 +227,6 @@ class PermissionManager:
                 return False
         return True
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 # -- Tool implementations --
 def safe_path(p: str) -> Path:
     path = (WORKDIR / p).resolve()
@@ -357,10 +234,6 @@ def safe_path(p: str) -> Path:
         raise ValueError(f"Path escapes workspace: {p}")
     return path
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def run_bash(command: str) -> str:
     try:
         r = subprocess.run(command, shell=True, cwd=WORKDIR,
@@ -370,10 +243,6 @@ def run_bash(command: str) -> str:
     except subprocess.TimeoutExpired:
         return "Error: Timeout (120s)"
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def run_read(path: str, limit: int = None) -> str:
     try:
         lines = safe_path(path).read_text().splitlines()
@@ -383,10 +252,6 @@ def run_read(path: str, limit: int = None) -> str:
     except Exception as e:
         return f"Error: {e}"
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def run_write(path: str, content: str) -> str:
     try:
         fp = safe_path(path)
@@ -396,10 +261,6 @@ def run_write(path: str, content: str) -> str:
     except Exception as e:
         return f"Error: {e}"
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def run_edit(path: str, old_text: str, new_text: str) -> str:
     try:
         fp = safe_path(path)
@@ -411,10 +272,6 @@ def run_edit(path: str, old_text: str, new_text: str) -> str:
     except Exception as e:
         return f"Error: {e}"
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 TOOL_HANDLERS = {
     "bash":       lambda **kw: run_bash(kw["command"]),
     "read_file":  lambda **kw: run_read(kw["path"], kw.get("limit")),
@@ -436,17 +293,11 @@ TOOLS = [
 SYSTEM = f"""You are a coding agent at {WORKDIR}. Use tools to solve tasks.
 The user controls permissions. Some tool calls may be denied."""
 
-<<<<<<< HEAD
-def agent_loop(messages: list, perms: PermissionManager):
-    """
-    The permission-aware agent loop.
-=======
 
 def agent_loop(messages: list, perms: PermissionManager):
     """
     The permission-aware agent loop.
 
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     For each tool call:
       1. LLM requests tool use
       2. Permission pipeline checks: deny_rules -> mode -> allow_rules -> ask
@@ -459,26 +310,14 @@ def agent_loop(messages: list, perms: PermissionManager):
             tools=TOOLS, max_tokens=8000,
         )
         messages.append({"role": "assistant", "content": response.content})
-<<<<<<< HEAD
-        if response.stop_reason != "tool_use":
-            return
-=======
 
         if response.stop_reason != "tool_use":
             return
 
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
         results = []
         for block in response.content:
             if block.type != "tool_use":
                 continue
-<<<<<<< HEAD
-            # -- Permission check --
-            decision = perms.check(block.name, block.input or {})
-            if decision["behavior"] == "deny":
-                output = f"Permission denied: {decision['reason']}"
-                print(f"  [DENIED] {block.name}: {decision['reason']}")
-=======
 
             # -- Permission check --
             decision = perms.check(block.name, block.input or {})
@@ -487,7 +326,6 @@ def agent_loop(messages: list, perms: PermissionManager):
                 output = f"Permission denied: {decision['reason']}"
                 print(f"  [DENIED] {block.name}: {decision['reason']}")
 
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
             elif decision["behavior"] == "ask":
                 if perms.ask_user(block.name, block.input or {}):
                     handler = TOOL_HANDLERS.get(block.name)
@@ -496,47 +334,29 @@ def agent_loop(messages: list, perms: PermissionManager):
                 else:
                     output = f"Permission denied by user for {block.name}"
                     print(f"  [USER DENIED] {block.name}")
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
             else:  # allow
                 handler = TOOL_HANDLERS.get(block.name)
                 output = handler(**(block.input or {})) if handler else f"Unknown: {block.name}"
                 print(f"> {block.name}: {str(output)[:200]}")
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
             results.append({
                 "type": "tool_result",
                 "tool_use_id": block.id,
                 "content": str(output),
             })
-<<<<<<< HEAD
-        messages.append({"role": "user", "content": results})
-
-=======
 
         messages.append({"role": "user", "content": results})
 
 
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 if __name__ == "__main__":
     # Choose permission mode at startup
     print("Permission modes: default, plan, auto")
     mode_input = input("Mode (default): ").strip().lower() or "default"
     if mode_input not in MODES:
         mode_input = "default"
-<<<<<<< HEAD
-    perms = PermissionManager(mode=mode_input)
-    print(f"[Permission mode: {mode_input}]")
-=======
 
     perms = PermissionManager(mode=mode_input)
     print(f"[Permission mode: {mode_input}]")
 
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     history = []
     while True:
         try:
@@ -545,10 +365,6 @@ if __name__ == "__main__":
             break
         if query.strip().lower() in ("q", "exit", ""):
             break
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
         # /mode command to switch modes at runtime
         if query.startswith("/mode"):
             parts = query.split()
@@ -558,19 +374,11 @@ if __name__ == "__main__":
             else:
                 print(f"Usage: /mode <{'|'.join(MODES)}>")
             continue
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
         # /rules command to show current rules
         if query.strip() == "/rules":
             for i, rule in enumerate(perms.rules):
                 print(f"  {i}: {rule}")
             continue
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
         history.append({"role": "user", "content": query})
         agent_loop(history, perms)
         response_content = history[-1]["content"]

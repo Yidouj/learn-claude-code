@@ -74,7 +74,6 @@ class TodoManager:
             ))
 
         if in_progress_count > 1:
-<<<<<<< HEAD
             raise ValueError("Only one task can be in_progress at a time")
         self.items = validated
         render = self.render()
@@ -82,13 +81,6 @@ class TodoManager:
         print(render)
         print('--------')
         return render
-=======
-            raise ValueError("Only one plan item can be in_progress")
-
-        self.state.items = normalized
-        self.state.rounds_since_update = 0
-        return self.render()
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 
     def note_round_without_update(self) -> None:
         self.state.rounds_since_update += 1

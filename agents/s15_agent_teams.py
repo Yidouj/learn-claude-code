@@ -2,22 +2,11 @@
 # Harness: team mailboxes -- multiple models, coordinated through files.
 """
 s15_agent_teams.py - Agent Teams
-<<<<<<< HEAD
 Persistent named agents with file-based JSONL inboxes. Each teammate runs
 its own agent loop in a separate thread. Communication happens through
 append-only inbox files.
     Subagent (s04):  spawn -> execute -> return summary -> destroyed
     Teammate (s15):  spawn -> work -> idle -> work -> ... -> shutdown
-=======
-
-Persistent named agents with file-based JSONL inboxes. Each teammate runs
-its own agent loop in a separate thread. Communication happens through
-append-only inbox files.
-
-    Subagent (s04):  spawn -> execute -> return summary -> destroyed
-    Teammate (s15):  spawn -> work -> idle -> work -> ... -> shutdown
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     .team/config.json                   .team/inbox/
     +----------------------------+      +------------------+
     | {"team_name": "default",   |      | alice.jsonl      |
@@ -27,10 +16,6 @@ append-only inbox files.
     |     "status":"idle"}       |
     |  ]}                        |      send_message("alice", "fix bug"):
     +----------------------------+        open("alice.jsonl", "a").write(msg)
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
                                         read_inbox("alice"):
     spawn_teammate("alice","coder",...)   msgs = [json.loads(l) for l in ...]
          |                                open("alice.jsonl", "w").close()
@@ -42,28 +27,14 @@ append-only inbox files.
     | ... runs tools   |      | ... waits ...    |
     | status -> idle   |      |                  |
     +------------------+      +------------------+
-<<<<<<< HEAD
 Key idea: teammates have names, inboxes, and independent loops.
-=======
-
-Key idea: teammates have names, inboxes, and independent loops.
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 Read this file in this order:
 1. MessageBus: how messages are queued and drained.
 2. TeammateManager: what persistent teammate state looks like.
 3. _teammate_loop / TOOL_HANDLERS: how each named teammate keeps re-entering the same tool loop.
-<<<<<<< HEAD
 Most common confusion:
 - a teammate is not a one-shot subagent
 - an inbox message is not yet a full protocol request
-=======
-
-Most common confusion:
-- a teammate is not a one-shot subagent
-- an inbox message is not yet a full protocol request
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 Teaching boundary:
 this file teaches persistent named workers plus mailboxes.
 Approval protocols and autonomous policies are added in later chapters.
@@ -75,23 +46,14 @@ import subprocess
 import threading
 import time
 from pathlib import Path
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 from anthropic import Anthropic
 from dotenv import load_dotenv
 
 load_dotenv(override=True)
-<<<<<<< HEAD
-
-=======
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 if os.getenv("ANTHROPIC_BASE_URL"):
     os.environ.pop("ANTHROPIC_AUTH_TOKEN", None)
 
 WORKDIR = Path.cwd()
-<<<<<<< HEAD
 
 client = Anthropic(base_url=os.getenv("ANTHROPIC_BASE_URL"))
 
@@ -99,11 +61,6 @@ MODEL = os.environ["MODEL_ID"]
 
 TEAM_DIR = WORKDIR / ".team"
 
-=======
-client = Anthropic(base_url=os.getenv("ANTHROPIC_BASE_URL"))
-MODEL = os.environ["MODEL_ID"]
-TEAM_DIR = WORKDIR / ".team"
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 INBOX_DIR = TEAM_DIR / "inbox"
 
 SYSTEM = f"You are a team lead at {WORKDIR}. Spawn teammates and communicate via inboxes."
@@ -117,10 +74,6 @@ VALID_MSG_TYPES = {
     "plan_approval_response",
 }
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 # -- MessageBus: JSONL inbox per teammate --
 class MessageBus:
     def __init__(self, inbox_dir: Path):
@@ -143,11 +96,7 @@ class MessageBus:
         with open(inbox_path, "a") as f:
             f.write(json.dumps(msg) + "\n")
         return f"Sent {msg_type} to {to}"
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def read_inbox(self, name: str) -> list:
         inbox_path = self.dir / f"{name}.jsonl"
         if not inbox_path.exists():
@@ -158,11 +107,7 @@ class MessageBus:
                 messages.append(json.loads(line))
         inbox_path.write_text("")
         return messages
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def broadcast(self, sender: str, content: str, teammates: list) -> str:
         count = 0
         for name in teammates:
@@ -170,24 +115,12 @@ class MessageBus:
                 self.send(sender, name, content, "broadcast")
                 count += 1
         return f"Broadcast to {count} teammates"
-<<<<<<< HEAD
     
 BUS = MessageBus(INBOX_DIR)
 
 # -- TeammateManager: persistent named agents with config.json --
 class TeammateManager:
     """Persistent teammate registry plus worker-loop launcher."""
-=======
-
-
-BUS = MessageBus(INBOX_DIR)
-
-
-# -- TeammateManager: persistent named agents with config.json --
-class TeammateManager:
-    """Persistent teammate registry plus worker-loop launcher."""
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def __init__(self, team_dir: Path):
         self.dir = team_dir
         self.dir.mkdir(exist_ok=True)
@@ -199,11 +132,7 @@ class TeammateManager:
         if self.config_path.exists():
             return json.loads(self.config_path.read_text())
         return {"team_name": "default", "members": []}
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def _save_config(self):
         self.config_path.write_text(json.dumps(self.config, indent=2))
 

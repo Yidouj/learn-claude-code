@@ -2,28 +2,14 @@
 # Harness: persistent tasks -- goals that outlive any single conversation.
 """
 s12_task_system.py - Tasks
-<<<<<<< HEAD
 Tasks persist as JSON files in .tasks/ so they survive context compression.
 Each task carries a small dependency graph:
 - blockedBy: what must finish first
 - blocks: what this task unlocks later
-=======
-
-Tasks persist as JSON files in .tasks/ so they survive context compression.
-Each task carries a small dependency graph:
-
-- blockedBy: what must finish first
-- blocks: what this task unlocks later
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     .tasks/
       task_1.json  {"id":1, "subject":"...", "status":"completed", ...}
       task_2.json  {"id":2, "blockedBy":[1], "status":"pending", ...}
       task_3.json  {"id":3, "blockedBy":[2], "blocks":[], ...}
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     Dependency resolution:
     +----------+     +----------+     +----------+
     | task 1   | --> | task 2   | --> | task 3   |
@@ -31,32 +17,16 @@ Each task carries a small dependency graph:
     +----------+     +----------+     +----------+
          |                ^
          +--- completing task 1 removes it from task 2's blockedBy
-<<<<<<< HEAD
 Key idea: task state survives compression because it lives on disk, not only
 inside the conversation.
 These are durable work-graph tasks, not transient runtime execution slots.
-=======
-
-Key idea: task state survives compression because it lives on disk, not only
-inside the conversation.
-These are durable work-graph tasks, not transient runtime execution slots.
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 Read this file in this order:
 1. TaskManager: what a TaskRecord looks like on disk.
 2. TOOL_HANDLERS / TOOLS: how task operations enter the same loop as normal tools.
 3. agent_loop: how persistent work state is exposed back to the model.
-<<<<<<< HEAD
 Most common confusion:
 - a task record is a durable work item
 - it is not a thread, background slot, or worker process
-=======
-
-Most common confusion:
-- a task record is a durable work item
-- it is not a thread, background slot, or worker process
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 Teaching boundary:
 this chapter teaches the durable work graph first.
 Runtime execution slots and schedulers arrive later.
@@ -66,10 +36,6 @@ import json
 import os
 import subprocess
 from pathlib import Path
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 from anthropic import Anthropic
 from dotenv import load_dotenv
 
@@ -79,36 +45,20 @@ if os.getenv("ANTHROPIC_BASE_URL"):
     os.environ.pop("ANTHROPIC_AUTH_TOKEN", None)
 
 WORKDIR = Path.cwd()
-<<<<<<< HEAD
 
 client = Anthropic(base_url=os.getenv("ANTHROPIC_BASE_URL"))
 
 MODEL = os.environ["MODEL_ID"]
 
-=======
-client = Anthropic(base_url=os.getenv("ANTHROPIC_BASE_URL"))
-MODEL = os.environ["MODEL_ID"]
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 TASKS_DIR = WORKDIR / ".tasks"
 
 SYSTEM = f"You are a coding agent at {WORKDIR}. Use task tools to plan and track work."
 
-<<<<<<< HEAD
 # -- TaskManager: CRUD for a persistent task graph --
 class TaskManager:
     """Persistent TaskRecord store.
     Think "work graph on disk", not "currently running worker".
     """
-=======
-
-# -- TaskManager: CRUD for a persistent task graph --
-class TaskManager:
-    """Persistent TaskRecord store.
-
-    Think "work graph on disk", not "currently running worker".
-    """
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def __init__(self, tasks_dir: Path):
         self.dir = tasks_dir
         self.dir.mkdir(exist_ok=True)
@@ -117,21 +67,13 @@ class TaskManager:
     def _max_id(self) -> int:
         ids = [int(f.stem.split("_")[1]) for f in self.dir.glob("task_*.json")]
         return max(ids) if ids else 0
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def _load(self, task_id: int) -> dict:
         path = self.dir / f"task_{task_id}.json"
         if not path.exists():
             raise ValueError(f"Task {task_id} not found")
         return json.loads(path.read_text())
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def _save(self, task: dict):
         path = self.dir / f"task_{task['id']}.json"
         path.write_text(json.dumps(task, indent=2))
@@ -144,17 +86,10 @@ class TaskManager:
         self._save(task)
         self._next_id += 1
         return json.dumps(task, indent=2)
-<<<<<<< HEAD
     
     def get(self, task_id: int) -> str:
         return json.dumps(self._load(task_id), indent=2)
     
-=======
-
-    def get(self, task_id: int) -> str:
-        return json.dumps(self._load(task_id), indent=2)
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def update(self, task_id: int, status: str = None, owner: str = None,
                add_blocked_by: list = None, add_blocks: list = None) -> str:
         task = self._load(task_id)
@@ -182,11 +117,7 @@ class TaskManager:
                     pass
         self._save(task)
         return json.dumps(task, indent=2)
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def _clear_dependency(self, completed_id: int):
         """Remove completed_id from all other tasks' blockedBy lists."""
         for f in self.dir.glob("task_*.json"):
@@ -194,11 +125,7 @@ class TaskManager:
             if completed_id in task.get("blockedBy", []):
                 task["blockedBy"].remove(completed_id)
                 self._save(task)
-<<<<<<< HEAD
                 
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def list_all(self) -> str:
         tasks = []
         for f in sorted(self.dir.glob("task_*.json")):
@@ -212,27 +139,15 @@ class TaskManager:
             owner = f" owner={t['owner']}" if t.get("owner") else ""
             lines.append(f"{marker} #{t['id']}: {t['subject']}{owner}{blocked}")
         return "\n".join(lines)
-<<<<<<< HEAD
     
 TASKS = TaskManager(TASKS_DIR)
 
-=======
-
-
-TASKS = TaskManager(TASKS_DIR)
-
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 # -- Base tool implementations --
 def safe_path(p: str) -> Path:
     path = (WORKDIR / p).resolve()
     if not path.is_relative_to(WORKDIR):
         raise ValueError(f"Path escapes workspace: {p}")
     return path
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def run_bash(command: str) -> str:
     dangerous = ["rm -rf /", "sudo", "shutdown", "reboot", "> /dev/"]
     if any(d in command for d in dangerous):
@@ -244,10 +159,6 @@ def run_bash(command: str) -> str:
         return out[:50000] if out else "(no output)"
     except subprocess.TimeoutExpired:
         return "Error: Timeout (120s)"
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def run_read(path: str, limit: int = None) -> str:
     try:
         lines = safe_path(path).read_text().splitlines()
@@ -256,10 +167,6 @@ def run_read(path: str, limit: int = None) -> str:
         return "\n".join(lines)[:50000]
     except Exception as e:
         return f"Error: {e}"
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def run_write(path: str, content: str) -> str:
     try:
         fp = safe_path(path)
@@ -268,10 +175,6 @@ def run_write(path: str, content: str) -> str:
         return f"Wrote {len(content)} bytes"
     except Exception as e:
         return f"Error: {e}"
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def run_edit(path: str, old_text: str, new_text: str) -> str:
     try:
         fp = safe_path(path)
@@ -282,12 +185,8 @@ def run_edit(path: str, old_text: str, new_text: str) -> str:
         return f"Edited {path}"
     except Exception as e:
         return f"Error: {e}"
-<<<<<<< HEAD
-    
-=======
 
 
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 TOOL_HANDLERS = {
     "bash":        lambda **kw: run_bash(kw["command"]),
     "read_file":   lambda **kw: run_read(kw["path"], kw.get("limit")),
@@ -318,10 +217,6 @@ TOOLS = [
      "input_schema": {"type": "object", "properties": {"task_id": {"type": "integer"}}, "required": ["task_id"]}},
 ]
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def agent_loop(messages: list):
     while True:
         response = client.messages.create(
@@ -343,10 +238,6 @@ def agent_loop(messages: list):
                 results.append({"type": "tool_result", "tool_use_id": block.id, "content": str(output)})
         messages.append({"role": "user", "content": results})
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 if __name__ == "__main__":
     history = []
     while True:

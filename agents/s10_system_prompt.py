@@ -2,30 +2,15 @@
 # Harness: assembly -- the system prompt is a pipeline, not a string.
 """
 s10_system_prompt.py - System Prompt Construction
-<<<<<<< HEAD
-This chapter teaches one core idea:
-the system prompt should be assembled from clear sections, not written as one
-giant hardcoded blob.
-=======
 
 This chapter teaches one core idea:
 the system prompt should be assembled from clear sections, not written as one
 giant hardcoded blob.
 
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 Teaching pipeline:
   1. core instructions
   2. tool listing
   3. skill metadata
-<<<<<<< HEAD
-  4. memory sectiony
-  5. CLAUDE.md chain
-  6. dynamic context
-The builder keeps stable information separate from information that changes
-often. A simple DYNAMIC_BOUNDARY marker makes that split visible.
-Per-turn reminders are even more dynamic. They are better injected as a
-separate user-role system reminder than mixed blindly into the stable prompt.
-=======
   4. memory section
   5. CLAUDE.md chain
   6. dynamic context
@@ -36,7 +21,6 @@ often. A simple DYNAMIC_BOUNDARY marker makes that split visible.
 Per-turn reminders are even more dynamic. They are better injected as a
 separate user-role system reminder than mixed blindly into the stable prompt.
 
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 Key insight: "Prompt construction is a pipeline with boundaries, not one
 big string."
 """
@@ -47,45 +31,21 @@ import os
 import re
 import subprocess
 from pathlib import Path
-<<<<<<< HEAD
-from anthropic import Anthropic
-
-from dotenv import load_dotenv
-
-load_dotenv(override=True)
-=======
 
 from anthropic import Anthropic
 from dotenv import load_dotenv
 
 load_dotenv(override=True)
 
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 if os.getenv("ANTHROPIC_BASE_URL"):
     os.environ.pop("ANTHROPIC_AUTH_TOKEN", None)
 
 WORKDIR = Path.cwd()
-<<<<<<< HEAD
-
 client = Anthropic(base_url=os.getenv("ANTHROPIC_BASE_URL"))
-
-=======
-client = Anthropic(base_url=os.getenv("ANTHROPIC_BASE_URL"))
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 MODEL = os.environ["MODEL_ID"]
 
 DYNAMIC_BOUNDARY = "=== DYNAMIC_BOUNDARY ==="
 
-<<<<<<< HEAD
-class SystemPromptBuilder:
-    """
-    Assemble the system prompt from independent sections.
-    The teaching goal here is clarity:
-    each section has one source and one responsibility.
-    That makes the prompt easier to reason about, easier to test, and easier
-    to evolve as the agent grows new capabilities.
-    """
-=======
 
 class SystemPromptBuilder:
     """
@@ -98,17 +58,11 @@ class SystemPromptBuilder:
     to evolve as the agent grows new capabilities.
     """
 
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def __init__(self, workdir: Path = None, tools: list = None):
         self.workdir = workdir or WORKDIR
         self.tools = tools or []
         self.skills_dir = self.workdir / "skills"
         self.memory_dir = self.workdir / ".memory"
-<<<<<<< HEAD
-    
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     # -- Section 1: Core instructions --
     def _build_core(self) -> str:
         return (
@@ -116,11 +70,6 @@ class SystemPromptBuilder:
             "Use the provided tools to explore, read, write, and edit files.\n"
             "Always verify before assuming. Prefer reading files over guessing."
         )
-<<<<<<< HEAD
-    
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     # -- Section 2: Tool listings --
     def _build_tool_listing(self) -> str:
         if not self.tools:
@@ -131,11 +80,6 @@ class SystemPromptBuilder:
             params = ", ".join(props.keys())
             lines.append(f"- {tool['name']}({params}): {tool['description']}")
         return "\n".join(lines)
-<<<<<<< HEAD
-    
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     # -- Section 3: Skill metadata (layer 1 from s05 concept) --
     def _build_skill_listing(self) -> str:
         if not self.skills_dir.exists():
@@ -161,11 +105,6 @@ class SystemPromptBuilder:
         if not skills:
             return ""
         return "# Available skills\n" + "\n".join(skills)
-<<<<<<< HEAD
-    
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     # -- Section 4: Memory content --
     def _build_memory_section(self) -> str:
         if not self.memory_dir.exists():
@@ -191,11 +130,6 @@ class SystemPromptBuilder:
         if not memories:
             return ""
         return "# Memories (persistent)\n\n" + "\n\n".join(memories)
-<<<<<<< HEAD
-    
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     # -- Section 5: CLAUDE.md chain --
     def _build_claude_md(self) -> str:
         """
@@ -205,26 +139,14 @@ class SystemPromptBuilder:
         3. <current-subdir>/CLAUDE.md (directory-specific instructions)
         """
         sources = []
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
         # User-global
         user_claude = Path.home() / ".claude" / "CLAUDE.md"
         if user_claude.exists():
             sources.append(("user global (~/.claude/CLAUDE.md)", user_claude.read_text()))
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
         # Project root
         project_claude = self.workdir / "CLAUDE.md"
         if project_claude.exists():
             sources.append(("project root (CLAUDE.md)", project_claude.read_text()))
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
         # Subdirectory -- in real CC, this walks from cwd up to project root
         # Teaching: check cwd if different from workdir
         cwd = Path.cwd()
@@ -232,10 +154,6 @@ class SystemPromptBuilder:
             subdir_claude = cwd / "CLAUDE.md"
             if subdir_claude.exists():
                 sources.append((f"subdir ({cwd.name}/CLAUDE.md)", subdir_claude.read_text()))
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
         if not sources:
             return ""
         parts = ["# CLAUDE.md instructions"]
@@ -243,11 +161,6 @@ class SystemPromptBuilder:
             parts.append(f"## From {label}")
             parts.append(content.strip())
         return "\n\n".join(parts)
-<<<<<<< HEAD
-    
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     # -- Section 6: Dynamic context --
     def _build_dynamic_context(self) -> str:
         lines = [
@@ -257,51 +170,15 @@ class SystemPromptBuilder:
             f"Platform: {os.uname().sysname}",
         ]
         return "# Dynamic context\n" + "\n".join(lines)
-<<<<<<< HEAD
-    
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     # -- Assemble all sections --
     def build(self) -> str:
         """
         Assemble the full system prompt from all sections.
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
         Static sections (1-5) are separated from dynamic (6) by
         the DYNAMIC_BOUNDARY marker. In real CC, the static prefix
         is cached across turns to save prompt tokens.
         """
         sections = []
-<<<<<<< HEAD
-        core = self._build_core()
-        if core:
-            sections.append(core)
-        tools = self._build_tool_listing()
-        if tools:
-            sections.append(tools)
-        skills = self._build_skill_listing()
-        if skills:
-            sections.append(skills)
-        memory = self._build_memory_section()
-        if memory:
-            sections.append(memory)
-        claude_md = self._build_claude_md()
-        if claude_md:
-            sections.append(claude_md)
-        # Static/dynamic boundary
-        sections.append(DYNAMIC_BOUNDARY)
-        dynamic = self._build_dynamic_context()
-        if dynamic:
-            sections.append(dynamic)
-        return "\n\n".join(sections)
-    
-def build_system_reminder(extra: str = None) -> dict:
-    """
-    Build a system-reminder user message for per-turn dynamic content.
-=======
 
         core = self._build_core()
         if core:
@@ -337,7 +214,6 @@ def build_system_reminder(extra: str = None) -> dict:
     """
     Build a system-reminder user message for per-turn dynamic content.
 
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     The teaching version keeps reminders outside the stable system prompt so
     short-lived context does not get mixed into the long-lived instructions.
     """
@@ -349,21 +225,14 @@ def build_system_reminder(extra: str = None) -> dict:
     content = "<system-reminder>\n" + "\n".join(parts) + "\n</system-reminder>"
     return {"role": "user", "content": content}
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 # -- Tool implementations --
 def safe_path(p: str) -> Path:
     path = (WORKDIR / p).resolve()
     if not path.is_relative_to(WORKDIR):
         raise ValueError(f"Path escapes workspace: {p}")
     return path
-<<<<<<< HEAD
-=======
 
 
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def run_bash(command: str) -> str:
     dangerous = ["rm -rf /", "sudo", "shutdown", "reboot", "> /dev/"]
     if any(d in command for d in dangerous):
@@ -375,11 +244,8 @@ def run_bash(command: str) -> str:
         return out[:50000] if out else "(no output)"
     except subprocess.TimeoutExpired:
         return "Error: Timeout (120s)"
-<<<<<<< HEAD
-=======
 
 
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def run_read(path: str, limit: int = None) -> str:
     try:
         lines = safe_path(path).read_text().splitlines()
@@ -388,11 +254,8 @@ def run_read(path: str, limit: int = None) -> str:
         return "\n".join(lines)[:50000]
     except Exception as e:
         return f"Error: {e}"
-<<<<<<< HEAD
-=======
 
 
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def run_write(path: str, content: str) -> str:
     try:
         fp = safe_path(path)
@@ -401,11 +264,8 @@ def run_write(path: str, content: str) -> str:
         return f"Wrote {len(content)} bytes"
     except Exception as e:
         return f"Error: {e}"
-<<<<<<< HEAD
-=======
 
 
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def run_edit(path: str, old_text: str, new_text: str) -> str:
     try:
         fp = safe_path(path)
@@ -416,21 +276,14 @@ def run_edit(path: str, old_text: str, new_text: str) -> str:
         return f"Edited {path}"
     except Exception as e:
         return f"Error: {e}"
-<<<<<<< HEAD
-=======
 
 
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 TOOL_HANDLERS = {
     "bash":       lambda **kw: run_bash(kw["command"]),
     "read_file":  lambda **kw: run_read(kw["path"], kw.get("limit")),
     "write_file": lambda **kw: run_write(kw["path"], kw["content"]),
     "edit_file":  lambda **kw: run_edit(kw["path"], kw["old_text"], kw["new_text"]),
 }
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 TOOLS = [
     {"name": "bash", "description": "Run a shell command.",
      "input_schema": {"type": "object", "properties": {"command": {"type": "string"}}, "required": ["command"]}},
@@ -445,17 +298,11 @@ TOOLS = [
 # Global prompt builder
 prompt_builder = SystemPromptBuilder(workdir=WORKDIR, tools=TOOLS)
 
-<<<<<<< HEAD
-def agent_loop(messages: list):
-    """
-    Agent loop with assembled system prompt.
-=======
 
 def agent_loop(messages: list):
     """
     Agent loop with assembled system prompt.
 
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     The system prompt is rebuilt each iteration. In real CC, the static
     prefix is cached and only the dynamic suffix changes per turn.
     """
@@ -466,15 +313,8 @@ def agent_loop(messages: list):
             tools=TOOLS, max_tokens=8000,
         )
         messages.append({"role": "assistant", "content": response.content})
-<<<<<<< HEAD
         if response.stop_reason != "tool_use":
             return
-=======
-
-        if response.stop_reason != "tool_use":
-            return
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
         results = []
         for block in response.content:
             if block.type != "tool_use":
@@ -490,23 +330,12 @@ def agent_loop(messages: list):
                 "tool_use_id": block.id,
                 "content": str(output),
             })
-<<<<<<< HEAD
         messages.append({"role": "user", "content": results})
-=======
-
-        messages.append({"role": "user", "content": results})
-
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 if __name__ == "__main__":
     # Show the assembled prompt at startup for educational purposes
     full_prompt = prompt_builder.build()
     section_count = full_prompt.count("\n# ")
     print(f"[System prompt assembled: {len(full_prompt)} chars, ~{section_count} sections]")
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     # /prompt command shows the full assembled prompt
     history = []
     while True:
@@ -516,29 +345,17 @@ if __name__ == "__main__":
             break
         if query.strip().lower() in ("q", "exit", ""):
             break
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
         if query.strip() == "/prompt":
             print("--- System Prompt ---")
             print(prompt_builder.build())
             print("--- End ---")
             continue
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
         if query.strip() == "/sections":
             prompt = prompt_builder.build()
             for line in prompt.splitlines():
                 if line.startswith("# ") or line == DYNAMIC_BOUNDARY:
                     print(f"  {line}")
             continue
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
         history.append({"role": "user", "content": query})
         agent_loop(history)
         response_content = history[-1]["content"]

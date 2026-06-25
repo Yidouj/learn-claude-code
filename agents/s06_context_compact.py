@@ -117,7 +117,6 @@ def micro_compact(messages: list) -> list:
     return messages
 
 
-<<<<<<< HEAD
 # -- Layer 2: auto_compact - save transcript, summarize, replace messages --
 def auto_compact(messages: list, focus: str = "") -> list:
     # Save full transcript to disk
@@ -155,14 +154,6 @@ def safe_path(p: str) -> Path:
     path = (WORKDIR / p).resolve()
     if not path.is_relative_to(WORKDIR):
         raise ValueError(f"Path escapes workspace: {p}")
-=======
-def write_transcript(messages: list) -> Path:
-    TRANSCRIPT_DIR.mkdir(parents=True, exist_ok=True)
-    path = TRANSCRIPT_DIR / f"transcript_{int(time.time())}.jsonl"
-    with path.open("w") as handle:
-        for message in messages:
-            handle.write(json.dumps(message, default=str) + "\n")
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     return path
 
 
@@ -371,7 +362,6 @@ def agent_loop(messages: list, state: CompactState) -> None:
 
         results = []
         manual_compact = False
-<<<<<<< HEAD
         compact_focus = ""
         for block in response.content:
             if block.type == "tool_use":
@@ -388,35 +378,12 @@ def agent_loop(messages: list, state: CompactState) -> None:
                 print(f"> {block.name}:")
                 print(str(output)[:200])
                 results.append({"type": "tool_result", "tool_use_id": block.id, "content": str(output)})
-=======
-        compact_focus = None
-        for block in response.content:
-            if block.type != "tool_use":
-                continue
-
-            output = execute_tool(block, state)
-            if block.name == "compact":
-                manual_compact = True
-                compact_focus = (block.input or {}).get("focus")
-
-            print(f"> {block.name}: {str(output)[:200]}")
-            results.append({
-                "type": "tool_result",
-                "tool_use_id": block.id,
-                "content": str(output),
-            })
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
         messages.append({"role": "user", "content": results})
 
         if manual_compact:
             print("[manual compact]")
-<<<<<<< HEAD
             messages[:] = auto_compact(messages, focus=compact_focus)
             return
-=======
-            messages[:] = compact_history(messages, state, focus=compact_focus)
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 
 
 if __name__ == "__main__":

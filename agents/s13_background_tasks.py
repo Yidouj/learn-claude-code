@@ -2,15 +2,8 @@
 # Harness: background execution -- the model thinks while the harness waits.
 """
 s13_background_tasks.py - Background Tasks
-<<<<<<< HEAD
 Run slow commands in background threads. Before each LLM call, the loop
 drains a notification queue and hands finished results back to the model.
-=======
-
-Run slow commands in background threads. Before each LLM call, the loop
-drains a notification queue and hands finished results back to the model.
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     Main thread                Background thread
     +-----------------+        +-----------------+
     | agent loop      |        | task executes   |
@@ -18,10 +11,6 @@ drains a notification queue and hands finished results back to the model.
     | [LLM call] <---+------- | enqueue(result) |
     |  ^drain queue   |        +-----------------+
     +-----------------+
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     Timeline:
     Agent ----[spawn A]----[spawn B]----[other work]----
                  |              |
@@ -29,10 +18,6 @@ drains a notification queue and hands finished results back to the model.
               [A runs]      [B runs]
                  |              |
                  +-- notification queue --> [results injected]
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 Background tasks here are runtime execution slots, not the durable task-board
 records introduced in s12.
 """
@@ -44,10 +29,6 @@ import threading
 import time
 import uuid
 from pathlib import Path
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 from anthropic import Anthropic
 from dotenv import load_dotenv
 
@@ -57,7 +38,6 @@ if os.getenv("ANTHROPIC_BASE_URL"):
     os.environ.pop("ANTHROPIC_AUTH_TOKEN", None)
 
 WORKDIR = Path.cwd()
-<<<<<<< HEAD
 
 RUNTIME_DIR = WORKDIR / ".runtime-tasks"
 
@@ -65,35 +45,18 @@ RUNTIME_DIR.mkdir(exist_ok=True)
 
 client = Anthropic(base_url=os.getenv("ANTHROPIC_BASE_URL"))
 
-=======
-RUNTIME_DIR = WORKDIR / ".runtime-tasks"
-RUNTIME_DIR.mkdir(exist_ok=True)
-client = Anthropic(base_url=os.getenv("ANTHROPIC_BASE_URL"))
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 MODEL = os.environ["MODEL_ID"]
 
 SYSTEM = f"You are a coding agent at {WORKDIR}. Use background_run for long-running commands."
 
 STALL_THRESHOLD_S = 45  # seconds before a task is considered stalled
 
-<<<<<<< HEAD
 class NotificationQueue:
     """
     Priority-based notification queue with same-key folding.
     Folding means a newer message can replace an older message with the
     same key, so the context is not flooded with stale updates.
     """
-=======
-
-class NotificationQueue:
-    """
-    Priority-based notification queue with same-key folding.
-
-    Folding means a newer message can replace an older message with the
-    same key, so the context is not flooded with stale updates.
-    """
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     PRIORITIES = {"immediate": 0, "high": 1, "medium": 2, "low": 3}
 
     def __init__(self):
@@ -115,12 +78,7 @@ class NotificationQueue:
             messages = [m for _, _, m in self._queue]
             self._queue.clear()
             return messages
-<<<<<<< HEAD
         
-=======
-
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 # -- BackgroundManager: threaded execution + notification queue --
 class BackgroundManager:
     def __init__(self):
@@ -131,35 +89,20 @@ class BackgroundManager:
 
     def _record_path(self, task_id: str) -> Path:
         return self.dir / f"{task_id}.json"
-<<<<<<< HEAD
     
     def _output_path(self, task_id: str) -> Path:
         return self.dir / f"{task_id}.log"
     
-=======
-
-    def _output_path(self, task_id: str) -> Path:
-        return self.dir / f"{task_id}.log"
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def _persist_task(self, task_id: str):
         record = dict(self.tasks[task_id])
         self._record_path(task_id).write_text(
             json.dumps(record, indent=2, ensure_ascii=False)
         )
-<<<<<<< HEAD
     
     def _preview(self, output: str, limit: int = 500) -> str:
         compact = " ".join((output or "(no output)").split())
         return compact[:limit]
     
-=======
-
-    def _preview(self, output: str, limit: int = 500) -> str:
-        compact = " ".join((output or "(no output)").split())
-        return compact[:limit]
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def run(self, command: str) -> str:
         """Start a background thread, return task_id immediately."""
         task_id = str(uuid.uuid4())[:8]
@@ -183,11 +126,7 @@ class BackgroundManager:
             f"Background task {task_id} started: {command[:80]} "
             f"(output_file={output_file.relative_to(WORKDIR)})"
         )
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def _execute(self, task_id: str, command: str):
         """Thread target: run subprocess, capture output, push to queue."""
         try:
@@ -203,7 +142,6 @@ class BackgroundManager:
         except Exception as e:
             output = f"Error: {e}"
             status = "error"
-<<<<<<< HEAD
 
         final_output = output or "(no output)"
         
@@ -212,21 +150,11 @@ class BackgroundManager:
         output_path = self._output_path(task_id)
         output_path.write_text(final_output)
         
-=======
-        final_output = output or "(no output)"
-        preview = self._preview(final_output)
-        output_path = self._output_path(task_id)
-        output_path.write_text(final_output)
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
         self.tasks[task_id]["status"] = status
         self.tasks[task_id]["result"] = final_output
         self.tasks[task_id]["finished_at"] = time.time()
         self.tasks[task_id]["result_preview"] = preview
         self._persist_task(task_id)
-<<<<<<< HEAD
-
-=======
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
         with self._lock:
             self._notification_queue.append({
                 "task_id": task_id,
@@ -257,22 +185,14 @@ class BackgroundManager:
                 f"-> {t.get('result_preview') or '(running)'}"
             )
         return "\n".join(lines) if lines else "No background tasks."
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def drain_notifications(self) -> list:
         """Return and clear all pending completion notifications."""
         with self._lock:
             notifs = list(self._notification_queue)
             self._notification_queue.clear()
         return notifs
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def detect_stalled(self) -> list[str]:
         """
         Return task IDs that have been running longer than STALL_THRESHOLD_S.
@@ -286,27 +206,15 @@ class BackgroundManager:
             if elapsed > STALL_THRESHOLD_S:
                 stalled.append(task_id)
         return stalled
-<<<<<<< HEAD
     
 BG = BackgroundManager()
 
-=======
-
-
-BG = BackgroundManager()
-
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 # -- Tool implementations --
 def safe_path(p: str) -> Path:
     path = (WORKDIR / p).resolve()
     if not path.is_relative_to(WORKDIR):
         raise ValueError(f"Path escapes workspace: {p}")
     return path
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def run_bash(command: str) -> str:
     dangerous = ["rm -rf /", "sudo", "shutdown", "reboot", "> /dev/"]
     if any(d in command for d in dangerous):
@@ -318,10 +226,6 @@ def run_bash(command: str) -> str:
         return out[:50000] if out else "(no output)"
     except subprocess.TimeoutExpired:
         return "Error: Timeout (120s)"
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def run_read(path: str, limit: int = None) -> str:
     try:
         lines = safe_path(path).read_text().splitlines()
@@ -330,10 +234,6 @@ def run_read(path: str, limit: int = None) -> str:
         return "\n".join(lines)[:50000]
     except Exception as e:
         return f"Error: {e}"
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def run_write(path: str, content: str) -> str:
     try:
         fp = safe_path(path)
@@ -342,10 +242,6 @@ def run_write(path: str, content: str) -> str:
         return f"Wrote {len(content)} bytes"
     except Exception as e:
         return f"Error: {e}"
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def run_edit(path: str, old_text: str, new_text: str) -> str:
     try:
         fp = safe_path(path)
@@ -356,12 +252,7 @@ def run_edit(path: str, old_text: str, new_text: str) -> str:
         return f"Edited {path}"
     except Exception as e:
         return f"Error: {e}"
-<<<<<<< HEAD
     
-=======
-
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 TOOL_HANDLERS = {
     "bash":             lambda **kw: run_bash(kw["command"]),
     "read_file":        lambda **kw: run_read(kw["path"], kw.get("limit")),
@@ -419,10 +310,6 @@ def agent_loop(messages: list):
                 results.append({"type": "tool_result", "tool_use_id": block.id, "content": str(output)})
         messages.append({"role": "user", "content": results})
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 if __name__ == "__main__":
     history = []
     while True:
@@ -439,8 +326,4 @@ if __name__ == "__main__":
             for block in response_content:
                 if hasattr(block, "text"):
                     print(block.text)
-<<<<<<< HEAD
         print()
-=======
-        print()
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969

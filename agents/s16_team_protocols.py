@@ -2,18 +2,9 @@
 # Harness: protocols -- structured handshakes between models.
 """
 s16_team_protocols.py - Team Protocols
-<<<<<<< HEAD
 Shutdown protocol and plan approval protocol, both using the same
 request_id correlation pattern. Builds on s15's mailbox-based team messaging.
     Shutdown FSM: pending -> approved | rejected
-=======
-
-Shutdown protocol and plan approval protocol, both using the same
-request_id correlation pattern. Builds on s15's mailbox-based team messaging.
-
-    Shutdown FSM: pending -> approved | rejected
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     Lead                              Teammate
     +---------------------+          +---------------------+
     | shutdown_request     |          |                     |
@@ -32,13 +23,7 @@ request_id correlation pattern. Builds on s15's mailbox-based team messaging.
             |
             v
     status -> "shutdown", thread stops
-<<<<<<< HEAD
     Plan approval FSM: pending -> approved | rejected
-=======
-
-    Plan approval FSM: pending -> approved | rejected
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     Teammate                          Lead
     +---------------------+          +---------------------+
     | plan_approval        |          |                     |
@@ -51,41 +36,20 @@ request_id correlation pattern. Builds on s15's mailbox-based team messaging.
     | {approve: true}      |          | review: {req_id,    |
     +---------------------+          |   approve: true}     |
                                      +---------------------+
-<<<<<<< HEAD
     Request store: .team/requests/{request_id}.json
 Key idea: one request/response shape can support multiple kinds of team workflow.
 Protocol requests are structured workflow objects, not normal free-form chat.
-=======
-
-    Request store: .team/requests/{request_id}.json
-
-Key idea: one request/response shape can support multiple kinds of team workflow.
-Protocol requests are structured workflow objects, not normal free-form chat.
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 Read this file in this order:
 1. MessageBus: how protocol envelopes still travel through the same inbox surface.
 2. Request files under .team/requests: how a request keeps durable status after the message is sent.
 3. Protocol handlers: how shutdown and plan approval reuse the same correlation pattern.
-<<<<<<< HEAD
 Most common confusion:
 - a protocol request is not a normal teammate chat message
 - a request record is not a task record
-=======
-
-Most common confusion:
-- a protocol request is not a normal teammate chat message
-- a request record is not a task record
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 Teaching boundary:
 this file teaches durable handshakes first.
 Autonomous claiming, task selection, and worktree assignment stay in later chapters.
 """
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 import json
 import os
 import subprocess
@@ -93,25 +57,16 @@ import threading
 import time
 import uuid
 from pathlib import Path
-<<<<<<< HEAD
 from anthropic import Anthropic
 from dotenv import load_dotenv
 
 
 load_dotenv(override=True)
 
-=======
-
-from anthropic import Anthropic
-from dotenv import load_dotenv
-
-load_dotenv(override=True)
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 if os.getenv("ANTHROPIC_BASE_URL"):
     os.environ.pop("ANTHROPIC_AUTH_TOKEN", None)
 
 WORKDIR = Path.cwd()
-<<<<<<< HEAD
 
 client = Anthropic(base_url=os.getenv("ANTHROPIC_BASE_URL"))
 
@@ -121,12 +76,6 @@ TEAM_DIR = WORKDIR / ".team"
 
 INBOX_DIR = TEAM_DIR / "inbox"
 
-=======
-client = Anthropic(base_url=os.getenv("ANTHROPIC_BASE_URL"))
-MODEL = os.environ["MODEL_ID"]
-TEAM_DIR = WORKDIR / ".team"
-INBOX_DIR = TEAM_DIR / "inbox"
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 REQUESTS_DIR = TEAM_DIR / "requests"
 
 SYSTEM = f"You are a team lead at {WORKDIR}. Manage teammates with shutdown and plan approval protocols."
@@ -162,11 +111,7 @@ class MessageBus:
         with open(inbox_path, "a") as f:
             f.write(json.dumps(msg) + "\n")
         return f"Sent {msg_type} to {to}"
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def read_inbox(self, name: str) -> list:
         inbox_path = self.dir / f"{name}.jsonl"
         if not inbox_path.exists():
@@ -177,11 +122,7 @@ class MessageBus:
                 messages.append(json.loads(line))
         inbox_path.write_text("")
         return messages
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def broadcast(self, sender: str, content: str, teammates: list) -> str:
         count = 0
         for name in teammates:
@@ -189,7 +130,6 @@ class MessageBus:
                 self.send(sender, name, content, "broadcast")
                 count += 1
         return f"Broadcast to {count} teammates"
-<<<<<<< HEAD
     
 BUS = MessageBus(INBOX_DIR)
 
@@ -199,21 +139,6 @@ class RequestStore:
     Protocol state should survive long enough to inspect, resume, or reconcile.
     This store keeps one JSON file per request_id under .team/requests/.
     """
-=======
-
-
-BUS = MessageBus(INBOX_DIR)
-
-
-class RequestStore:
-    """
-    Durable request records for protocol workflows.
-
-    Protocol state should survive long enough to inspect, resume, or reconcile.
-    This store keeps one JSON file per request_id under .team/requests/.
-    """
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def __init__(self, base_dir: Path):
         self.dir = base_dir
         self.dir.mkdir(parents=True, exist_ok=True)
@@ -221,31 +146,19 @@ class RequestStore:
 
     def _path(self, request_id: str) -> Path:
         return self.dir / f"{request_id}.json"
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def create(self, record: dict) -> dict:
         request_id = record["request_id"]
         with self._lock:
             self._path(request_id).write_text(json.dumps(record, indent=2))
         return record
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def get(self, request_id: str) -> dict | None:
         path = self._path(request_id)
         if not path.exists():
             return None
         return json.loads(path.read_text())
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def update(self, request_id: str, **changes) -> dict | None:
         with self._lock:
             record = self.get(request_id)
@@ -255,18 +168,10 @@ class RequestStore:
             record["updated_at"] = time.time()
             self._path(request_id).write_text(json.dumps(record, indent=2))
         return record
-<<<<<<< HEAD
     
 
 REQUEST_STORE = RequestStore(REQUESTS_DIR)
 
-=======
-
-
-REQUEST_STORE = RequestStore(REQUESTS_DIR)
-
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 # -- TeammateManager with shutdown + plan approval --
 class TeammateManager:
     def __init__(self, team_dir: Path):
@@ -280,11 +185,7 @@ class TeammateManager:
         if self.config_path.exists():
             return json.loads(self.config_path.read_text())
         return {"team_name": "default", "members": []}
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def _save_config(self):
         self.config_path.write_text(json.dumps(self.config, indent=2))
 
@@ -293,11 +194,7 @@ class TeammateManager:
             if m["name"] == name:
                 return m
         return None
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def spawn(self, name: str, role: str, prompt: str) -> str:
         member = self._find_member(name)
         if member:
@@ -317,11 +214,7 @@ class TeammateManager:
         self.threads[name] = thread
         thread.start()
         return f"Spawned '{name}' (role: {role})"
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def _teammate_loop(self, name: str, role: str, prompt: str):
         sys_prompt = (
             f"You are '{name}', role: {role}, at {WORKDIR}. "
@@ -418,11 +311,7 @@ class TeammateManager:
             )
             return f"Plan submitted (request_id={req_id}). Waiting for lead approval."
         return f"Unknown tool: {tool_name}"
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def _teammate_tools(self) -> list:
         # these base tools are unchanged from s02
         return [
@@ -443,11 +332,7 @@ class TeammateManager:
             {"name": "plan_approval", "description": "Submit a plan for lead approval. Provide plan text.",
              "input_schema": {"type": "object", "properties": {"plan": {"type": "string"}}, "required": ["plan"]}},
         ]
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
     def list_all(self) -> str:
         if not self.config["members"]:
             return "No teammates."
@@ -455,34 +340,18 @@ class TeammateManager:
         for m in self.config["members"]:
             lines.append(f"  {m['name']} ({m['role']}): {m['status']}")
         return "\n".join(lines)
-<<<<<<< HEAD
     
     def member_names(self) -> list:
         return [m["name"] for m in self.config["members"]]
     
 TEAM = TeammateManager(TEAM_DIR)
 
-=======
-
-    def member_names(self) -> list:
-        return [m["name"] for m in self.config["members"]]
-
-
-TEAM = TeammateManager(TEAM_DIR)
-
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 # -- Base tool implementations (these base tools are unchanged from s02) --
 def _safe_path(p: str) -> Path:
     path = (WORKDIR / p).resolve()
     if not path.is_relative_to(WORKDIR):
         raise ValueError(f"Path escapes workspace: {p}")
     return path
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def _run_bash(command: str) -> str:
     dangerous = ["rm -rf /", "sudo", "shutdown", "reboot"]
     if any(d in command for d in dangerous):
@@ -496,11 +365,6 @@ def _run_bash(command: str) -> str:
         return out[:50000] if out else "(no output)"
     except subprocess.TimeoutExpired:
         return "Error: Timeout (120s)"
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def _run_read(path: str, limit: int = None) -> str:
     try:
         lines = _safe_path(path).read_text().splitlines()
@@ -509,11 +373,6 @@ def _run_read(path: str, limit: int = None) -> str:
         return "\n".join(lines)[:50000]
     except Exception as e:
         return f"Error: {e}"
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def _run_write(path: str, content: str) -> str:
     try:
         fp = _safe_path(path)
@@ -522,11 +381,6 @@ def _run_write(path: str, content: str) -> str:
         return f"Wrote {len(content)} bytes"
     except Exception as e:
         return f"Error: {e}"
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def _run_edit(path: str, old_text: str, new_text: str) -> str:
     try:
         fp = _safe_path(path)
@@ -538,10 +392,6 @@ def _run_edit(path: str, old_text: str, new_text: str) -> str:
     except Exception as e:
         return f"Error: {e}"
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 # -- Lead-specific protocol handlers --
 def handle_shutdown_request(teammate: str) -> str:
     req_id = str(uuid.uuid4())[:8]
@@ -560,10 +410,6 @@ def handle_shutdown_request(teammate: str) -> str:
     )
     return f"Shutdown request {req_id} sent to '{teammate}' (status: pending)"
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def handle_plan_review(request_id: str, approve: bool, feedback: str = "") -> str:
     req = REQUEST_STORE.get(request_id)
     if not req:
@@ -581,17 +427,9 @@ def handle_plan_review(request_id: str, approve: bool, feedback: str = "") -> st
     )
     return f"Plan {'approved' if approve else 'rejected'} for '{req['from']}'"
 
-<<<<<<< HEAD
 def _check_shutdown_status(request_id: str) -> str:
     return json.dumps(REQUEST_STORE.get(request_id) or {"error": "not found"})
 
-=======
-
-def _check_shutdown_status(request_id: str) -> str:
-    return json.dumps(REQUEST_STORE.get(request_id) or {"error": "not found"})
-
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 # -- Lead tool dispatch (12 tools) --
 TOOL_HANDLERS = {
     "bash":              lambda **kw: _run_bash(kw["command"]),
@@ -636,10 +474,6 @@ TOOLS = [
      "input_schema": {"type": "object", "properties": {"request_id": {"type": "string"}, "approve": {"type": "boolean"}, "feedback": {"type": "string"}}, "required": ["request_id", "approve"]}},
 ]
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 def agent_loop(messages: list):
     while True:
         inbox = BUS.read_inbox("lead")
@@ -674,12 +508,7 @@ def agent_loop(messages: list):
                     "content": str(output),
                 })
         messages.append({"role": "user", "content": results})
-<<<<<<< HEAD
         
-=======
-
-
->>>>>>> 5dfe67f4bd2a807e257351a14996b5ca58777969
 if __name__ == "__main__":
     history = []
     while True:
